@@ -13,26 +13,25 @@ struct ContentView: View {
     @State var targetURL: URL?
     @State var sourceEnabled: Bool = true
     @State var targetEnabled: Bool = false
+    let numberOfChecksumSizes: Int = 6
+    @State var checksumSizes: [UInt] = [1, 2, 16, 256, 1024, 65536]
 
-    var body: some View {
-        VStack() {
-            HStack {
-                Button("Source") {
+    var body: some View
+    {
+        VStack()
+        {
+            // folder picker
+            HStack
+            {
+                Button("Source")
+                {
                     // create file open dialog to select a folder
                     let panel = NSOpenPanel()
                     panel.canChooseFiles = false
                     panel.canChooseDirectories = true
                     panel.allowsMultipleSelection = false
                     panel.canCreateDirectories = false
-//                    panel.allowedContentTypes = [
-//                        // photo
-//                        .jpeg, .png, .tiff, .rawImage,
-//                        // audio
-//                        .wav, .aiff, .mp3,
-//                        // video
-//                        .avi, .movie,
-//                    ]
-                    panel.message = "Select source directory containing media files"
+                    panel.message = "Select test directory containing media files"
                     if panel.runModal() == .OK, let url = panel.url {
                         sourceURL = url
                         targetEnabled = true
@@ -42,23 +41,24 @@ struct ContentView: View {
                 Text( sourceURL?.absoluteString ?? "Select Source Folder" )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            HStack {
-                Button("Target") {
-                    // create file open dialog to select a folder
-                    let panel = NSOpenPanel()
-                    panel.canChooseFiles = false
-                    panel.canChooseDirectories = true
-                    panel.allowsMultipleSelection = false
-                    panel.canCreateDirectories = false
-                    panel.message = "Select target directory containing media files"
-                    if panel.runModal() == .OK, let url = panel.url {
-                        targetURL = url
-                    }
-                }
-                .disabled( !targetEnabled )
-                Text( targetURL?.absoluteString ?? "Select Target Folder" )
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            // checksum sizes
+            HStack
+            {
+                
             }
+            // process button
+            HStack
+            {
+                Button("Process")
+                {
+                    
+                }
+                Spacer()
+            }
+            // progress bar
+            Text("TBD progress bar")
+            // results
+            Text("TBD results")
         }
         .padding( )
         Spacer()
