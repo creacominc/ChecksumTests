@@ -10,11 +10,16 @@ internal import UniformTypeIdentifiers
 
 struct ContentView: View {
     @State var sourceURL: URL?
-    @State var targetURL: URL?
     @State var sourceEnabled: Bool = true
-    @State var targetEnabled: Bool = false
+    @State var processEnabled: Bool = false
     let numberOfChecksumSizes: Int = 6
-    @State var checksumSizes: [UInt] = [1, 2, 16, 256, 1024, 65536]
+    @State var thresholds: [Double] = [
+        512,
+        8192,
+        1048576,
+        268435456,
+        17179869184
+    ]
 
     var body: some View
     {
@@ -34,7 +39,7 @@ struct ContentView: View {
                     panel.message = "Select test directory containing media files"
                     if panel.runModal() == .OK, let url = panel.url {
                         sourceURL = url
-                        targetEnabled = true
+                        processEnabled = true
                     }
                 }
                 .disabled( !sourceEnabled )
@@ -42,10 +47,16 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             // checksum sizes
-            HStack
-            {
-                
-            }
+            MultiThumbSlider(
+                values: $thresholds,
+                bounds: 512...17179869184, // 512 bytes to 16 GB
+                minSeparation: 64,         // Smaller separation for log scale
+                step: nil                  // No stepping for smooth log scale
+            )
+            Text(thresholds.map { MultiThumbSlider.formatBytes($0) }.joined(separator: ", "))
+                .monospaced()
+                .font(.caption)
+
             // process button
             HStack
             {
@@ -53,6 +64,7 @@ struct ContentView: View {
                 {
                     
                 }
+                .disabled( !processEnabled )
                 Spacer()
             }
             // progress bar
