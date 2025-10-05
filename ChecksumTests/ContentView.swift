@@ -46,11 +46,15 @@ struct ContentView: View {
                         sourceURL = url
                         // Initialize Tester with the selected URL
                         tester = Tester(sourceURL: url)
+                        guard let tester = tester else {
+                            statusText = "Failed to create tester object"
+                            return
+                        }
                         processEnabled = true
                         statusText = "Source directory selected. Click Process to analyze files."
-                        // Reset file counts until Process is clicked
-                        totalFiles = 0.0
-                        fileCountByType = [:]
+                        // Update UI with results
+                        totalFiles = tester.getFileCount()
+                        fileCountByType = tester.getFileCountByType()
                     }
                 }
                 .disabled( !sourceEnabled )
@@ -97,14 +101,8 @@ struct ContentView: View {
                 Button("Process")
                 {
                     guard let tester = tester else { return }
-                    
                     statusText = "Analyzing files..."
-                    tester.getNumberOfFiles()
-                    
-                    // Update UI with results
-                    totalFiles = tester.getFileCount()
-                    fileCountByType = tester.getFileCountByType()
-                    
+                    tester.process()
                     statusText = "Analysis complete. Found \(Int(totalFiles)) files."
                 }
                 .disabled( !processEnabled )

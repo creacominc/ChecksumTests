@@ -22,14 +22,28 @@ class Tester
     private var sourceURL: URL?
     private var fileCount: Double = 0.0
     private var fileCountByType: [String: Int] = [:]
-    
+    /**
+     *  Define a  file collection as follows:
+     *  A file collection is a set of files where an integer value is the key.
+     *  The integer value is the earlier of the creation and modification times in seconds 
+     * since the epoch modded by the seconds in 1 month.  This allows us to collect files 
+     * in the same element of the set that are within the same time period of 1 month (roughtly)
+     * and to search for files within a 6 month window by iterating through the set.
+     *  The value of the set is a file object which contains the file name, creation date,
+     *  modification date, file type, size, and checksums.
+     */
+    private var fileCollection: [Double: [File]] = [:]
+
+
+
     /**
      * Initialize the Tester with a source URL
      * - Parameter sourceURL: The URL of the source directory
      */
     init(sourceURL: URL) {
         self.sourceURL = sourceURL
-        resetStats()
+        //resetStats()
+        getNumberOfFiles()
     }
     
     /**
@@ -39,7 +53,7 @@ class Tester
         fileCount = 0.0
         fileCountByType = [:]
         // Initialize counts for each file type
-        for fileType in FileType.allCases {
+        for fileType in File.FileType.allCases {
             fileCountByType[fileType.rawValue] = 0
         }
     }
@@ -58,35 +72,12 @@ class Tester
         return fileCountByType
     }
     
-    // File type categories
-    enum FileType: String, CaseIterable {
-        case photo = "photo"
-        case audio = "audio"
-        case video = "video"
-        case other = "other"
-        
-        var fileExtensions: [String] {
-            switch self {
-            case .photo:
-                return ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif",
-                        "heic", "heif", "webp", "raw", "cr2", "nef", "arw",
-                        "rw2"]
-            case .audio:
-                return ["mp3", "wav", "aac", "flac", "ogg", "m4a", "wma", "aiff", "au"]
-            case .video:
-                return ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv",
-                        "m4v", "3gp", "ogv", "dng", "braw"]
-            case .other:
-                return []
-            }
-        }
-    }
-    
     /**
      * Get the total number of files and breakdown by file type in the source directory
      * This method sets the internal fileCount and fileCountByType properties
      */
-    func getNumberOfFiles() {
+    private func getNumberOfFiles()
+    {
         guard let sourceURL = sourceURL else {
             print("No source URL set")
             return
@@ -95,38 +86,61 @@ class Tester
         // Reset stats before counting
         resetStats()
         
-        do {
+        do
+        {
             let fileManager = FileManager.default
-            let enumerator = fileManager.enumerator(at: sourceURL, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles])
-            
-            while let fileURL = enumerator?.nextObject() as? URL {
-                let resourceValues = try fileURL.resourceValues(forKeys: [.isRegularFileKey])
-                
-                if resourceValues.isRegularFile == true {
-                    fileCount += 1
-                    
-                    let fileExtension = fileURL.pathExtension.lowercased()
-                    var categorized = false
-                    
-                    // Check each file type
-                    for fileType in FileType.allCases where fileType != .other {
-                        if fileType.fileExtensions.contains(fileExtension) {
-                            fileCountByType[fileType.rawValue] = (fileCountByType[fileType.rawValue] ?? 0) + 1
-                            categorized = true
-                            break
+            let enumerator = fileManager.enumerator(
+                at: sourceURL,
+                includingPropertiesForKeys: [.isRegularFileKey],
+                options: [.skipsHiddenFiles]
+            )
+            // for each file in the folder ...
+            while let fileURL = enumerator?.nextObject() as? URL
+            {
+                let resourceValues = try fileURL.resourceValues(
+                    forKeys: [.isRegularFileKey]
+                )
+                if resourceValues.isRegularFile == true
+                {
+                    // create the file object
+                    do
+                    {
+                        let file = try File( url: fileURL )
+                        // if the file key is not found in the fileCollection
+                        if self.fileCollection[file.key()] == nil
+                        {
+                            self.fileCollection[file.key()] = [file]
                         }
+                        else
+                        {
+                            self.fileCollection[file.key()]?.append( file )
+                        }
+                        self.fileCount += 1
+                        let type: String = file.type()
+                        fileCountByType[type] = (fileCountByType[type] ?? 0) + 1
                     }
-                    
-                    // If not categorized, add to "other"
-                    if !categorized {
-                        fileCountByType[FileType.other.rawValue] = (fileCountByType[FileType.other.rawValue] ?? 0) + 1
+                    catch
+                    {
+                        print("Failed to create File for \(fileURL.path): \(error.localizedDescription)")
                     }
                 }
             }
-        } catch {
+        }
+        catch
+        {
             print("Error scanning directory: \(error.localizedDescription)")
         }
     }
+
+    public func process()
+    {
+        // for each file
+        // get the creation and modification dates and keep the earlier one
+        // save the earlier of the two dates as a unix time mod the seconds in 6 months
+
+        // for each file
+    }
+    
 }
 
 
