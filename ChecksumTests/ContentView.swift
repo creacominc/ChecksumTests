@@ -12,6 +12,7 @@ struct ContentView: View {
     @State var sourceURL: URL?
     @State var sourceEnabled: Bool = true
     @State var processEnabled: Bool = false
+    @State var tester: Tester?
     let numberOfChecksumSizes: Int = 6
     @State var thresholds: [Double] = [
         512,
@@ -20,6 +21,10 @@ struct ContentView: View {
         268435456,
         17179869184
     ]
+    @State var statusText: String = "Select a source directory"
+    @State var totalFiles: Double = 0.0
+    @State var currentFileNumber: Double = 0.0
+    @State var fileCountByType: [String: Int] = [:]
 
     var body: some View
     {
@@ -39,13 +44,42 @@ struct ContentView: View {
                     panel.message = "Select test directory containing media files"
                     if panel.runModal() == .OK, let url = panel.url {
                         sourceURL = url
+                        // Initialize Tester with the selected URL
+                        tester = Tester(sourceURL: url)
                         processEnabled = true
+                        statusText = "Source directory selected. Click Process to analyze files."
+                        // Reset file counts until Process is clicked
+                        totalFiles = 0.0
+                        fileCountByType = [:]
                     }
                 }
                 .disabled( !sourceEnabled )
                 Text( sourceURL?.absoluteString ?? "Select Source Folder" )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+            // folder stats
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Total Files: \(Int(totalFiles))")
+                    .font(.headline)
+                
+                if !fileCountByType.isEmpty {
+                    VStack(alignment: .leading, spacing: 2) {
+                        ForEach(["photo", "audio", "video", "other"], id: \.self) { fileType in
+                            if let count = fileCountByType[fileType], count > 0 {
+                                HStack {
+                                    Text("\(fileType.capitalized):")
+                                        .font(.caption)
+                                    Text("\(count)")
+                                        .font(.caption)
+                                        .monospaced()
+                                }
+                            }
+                        }
+                    }
+                    .padding(.leading, 16)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             // checksum sizes
             MultiThumbSlider(
                 values: $thresholds,
@@ -62,18 +96,34 @@ struct ContentView: View {
             {
                 Button("Process")
                 {
+                    guard let tester = tester else { return }
                     
+                    statusText = "Analyzing files..."
+                    tester.getNumberOfFiles()
+                    
+                    // Update UI with results
+                    totalFiles = tester.getFileCount()
+                    fileCountByType = tester.getFileCountByType()
+                    
+                    statusText = "Analysis complete. Found \(Int(totalFiles)) files."
                 }
                 .disabled( !processEnabled )
                 Spacer()
             }
-            // progress bar
-            Text("TBD progress bar")
+            // progress bar using a range based on the number of files
+            ProgressView(value: currentFileNumber, total: totalFiles)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+
             // results
             Text("TBD results")
+            // Spacer
+            Spacer()
+            // Status Box
+            Text( statusText )
+                .frame( maxWidth: .infinity, alignment: .leading )
         }
         .padding( )
-        Spacer()
     }
 }
 
