@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MultiThumbSlider: View {
-    @Binding var values: [Double]                 // normalized or domain values
+    @Binding var values: [Int]                 // normalized or domain values
     let bounds: ClosedRange<Double>               // e.g., 0...1 or 0...100
     let minSeparation: Double                     // e.g., 0.05 in [0,1] space
     let step: Double?                             // set nil for continuous
@@ -18,7 +18,7 @@ struct MultiThumbSlider: View {
                     .frame(maxHeight: .infinity, alignment: .center)
                 
                 ForEach(values.indices, id: \.self) { i in
-                    let x = xPosition(for: values[i], width: w)
+                    let x = xPosition(for: Double(values[i]), width: w)
                     Circle()
                         .fill(Color.accentColor)
                         .frame(width: thumbDiameter, height: thumbDiameter)
@@ -26,7 +26,7 @@ struct MultiThumbSlider: View {
                         .position(x: x + thumbDiameter / 2, y: geo.size.height / 2)
                         .gesture(dragGesture(index: i, trackWidth: w))
                         .accessibilityLabel("Threshold \(i + 1)")
-                        .accessibilityValue(Text(String(format: "%.3f", values[i])))
+                        .accessibilityValue(Text(String(format: "%.3f", Double(values[i]))))
                 }
             }
             .padding(.horizontal, thumbDiameter / 2)
@@ -52,12 +52,16 @@ struct MultiThumbSlider: View {
                 // enforce ordering and min separation (using proportional separation for log scale)
                 let lower = index == 0
                 ? bounds.lowerBound
-                : values[index - 1] * (1 + minSeparation / bounds.lowerBound)
+                : Double(values[index - 1]) * (
+                    1 + minSeparation / bounds.lowerBound
+                )
                 let upper = index == values.count - 1
                 ? bounds.upperBound
-                : values[index + 1] / (1 + minSeparation / bounds.lowerBound)
+                : Double(values[index + 1]) / (
+                    1 + minSeparation / bounds.lowerBound
+                )
                 
-                values[index] = min(max(newValue, lower), upper)
+                values[index] = Int(min(max(newValue, lower), upper))
             }
     }
     
@@ -101,7 +105,13 @@ struct MultiThumbSlider: View {
 
 //// Example usage
 #Preview {
-    @Previewable @State var thresholds: [Double] = [512, 8192, 1048576, 268435456, 17179869184]
+    @Previewable @State var thresholds: [Int] = [
+        512,
+        8192,
+        1048576,
+        268435456,
+        17179869184
+    ]
 
     VStack(spacing: 24) {
         MultiThumbSlider(
@@ -113,7 +123,9 @@ struct MultiThumbSlider: View {
         VStack(spacing: 8) {
             Text("Values:")
                 .font(.headline)
-            Text(thresholds.map { MultiThumbSlider.formatBytes($0) }.joined(separator: ", "))
+            Text(
+                thresholds.map { MultiThumbSlider.formatBytes(Double($0))
+                }.joined(separator: ", "))
                 .monospaced()
                 .font(.caption)
         }

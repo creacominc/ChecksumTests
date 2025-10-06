@@ -132,13 +132,50 @@ class Tester
         }
     }
 
-    public func process()
+    public func process( progress: inout Double, thresholds: [Int]  )
     {
-        // for each file
-        // get the creation and modification dates and keep the earlier one
-        // save the earlier of the two dates as a unix time mod the seconds in 6 months
-
-        // for each file
+        progress = 0.0
+        // start a timer for the overall process
+        let startTime = Date()
+        // for each checksum size
+        for index : Int in thresholds.indices
+        {
+            let threshold = thresholds[index]
+            let nextThreshosld = (index + 1 < thresholds.count) ? thresholds[index + 1] : threshold
+            // print( "Threshold: \(threshold)" )
+            var fileCountByThreshold : Int = 0
+            // start a timer for the checksum size
+            let thresholdStartTime = Date()
+            // compute the checksum using this size in bytes for each file
+            for files: [File] in fileCollection.values
+            {
+                // print( "Files in this date group: \(files.count)" )
+                for file in files
+                {
+                    // compute the checksum using this size in bytes for each file
+                    let checked : Bool = file.checksum( size: Int(threshold),
+                                                        nextSize: Int(nextThreshosld))
+                    if checked
+                    {
+                        fileCountByThreshold += 1
+                        // print( "File: \(file.key()), \(file.name()) checked" )
+                    }
+                    // update the progress
+                    progress = 100.0 * Double(file.key()) / Double(fileCollection.count)
+                }
+            }
+            // save the size and time in a map by size
+            let thresholdEndTime = Date()
+            let thresholdTime = thresholdEndTime.timeIntervalSince(thresholdStartTime)
+            print("Threshold time: \(thresholdTime) seconds for \(fileCountByThreshold) files,  average time per file: \(thresholdTime / Double(fileCountByThreshold)) seconds")
+            // update the progress
+            progress = 100.0 * Double(threshold) / Double(thresholds.count)
+        }
+        // save the total time
+        progress = 100.0
+        let endTime = Date()
+        let totalTime = endTime.timeIntervalSince(startTime)
+        print("Total time: \(totalTime) seconds")
     }
     
 }

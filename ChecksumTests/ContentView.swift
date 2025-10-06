@@ -13,8 +13,7 @@ struct ContentView: View {
     @State var sourceEnabled: Bool = true
     @State var processEnabled: Bool = false
     @State var tester: Tester?
-    let numberOfChecksumSizes: Int = 6
-    @State var thresholds: [Double] = [
+    @State var thresholds: [Int] = [
         512,
         8192,
         1048576,
@@ -23,7 +22,7 @@ struct ContentView: View {
     ]
     @State var statusText: String = "Select a source directory"
     @State var totalFiles: Double = 0.0
-    @State var currentFileNumber: Double = 0.0
+    @State var progress: Double = 0.0
     @State var fileCountByType: [String: Int] = [:]
 
     var body: some View
@@ -62,12 +61,11 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             // folder stats
-            VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 24) {
                 Text("Total Files: \(Int(totalFiles))")
                     .font(.headline)
                 
                 if !fileCountByType.isEmpty {
-                    VStack(alignment: .leading, spacing: 2) {
                         ForEach(["photo", "audio", "video", "other"], id: \.self) { fileType in
                             if let count = fileCountByType[fileType], count > 0 {
                                 HStack {
@@ -79,8 +77,6 @@ struct ContentView: View {
                                 }
                             }
                         }
-                    }
-                    .padding(.leading, 16)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -91,7 +87,9 @@ struct ContentView: View {
                 minSeparation: 64,         // Smaller separation for log scale
                 step: nil                  // No stepping for smooth log scale
             )
-            Text(thresholds.map { MultiThumbSlider.formatBytes($0) }.joined(separator: ", "))
+            Text(
+                thresholds.map { MultiThumbSlider.formatBytes(Double($0))
+                }.joined(separator: ", "))
                 .monospaced()
                 .font(.caption)
 
@@ -102,14 +100,14 @@ struct ContentView: View {
                 {
                     guard let tester = tester else { return }
                     statusText = "Analyzing files..."
-                    tester.process()
+                    tester.process( progress: &progress, thresholds: thresholds )
                     statusText = "Analysis complete. Found \(Int(totalFiles)) files."
                 }
                 .disabled( !processEnabled )
                 Spacer()
             }
             // progress bar using a range based on the number of files
-            ProgressView(value: currentFileNumber, total: totalFiles)
+            ProgressView( value: progress, total: 100.0 )
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
 

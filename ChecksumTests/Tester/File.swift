@@ -7,6 +7,7 @@
 
 import Foundation
 import AppKit
+import CryptoKit
 
 class File
 {
@@ -23,21 +24,21 @@ class File
     private var fileName: String
     private var fileExtension: String
     private var fileType: FileType = .other
-    private var size: Int64
+    private var size: Int
 
     private var creationDate: Date
     private var modificationDate: Date
     private var dateSinceEpochMod: Double
-    private var checksums: [String]
+    private var checksums: [ Int: String ] = [:]
 
     init( url: URL ) throws
     {
 
-        self.fileName = url.absoluteString
+        self.fileName = url.path
         self.fileExtension = url.pathExtension.lowercased()
 
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
-        guard let size = attributes[.size] as? Int64 else {
+        guard let size = attributes[.size] as? Int else {
             throw FileError.invalidFileSize
         }
         self.size = size
@@ -58,7 +59,7 @@ class File
         // using the earlier of the creation and modification dates, save the date as seconds since the epoch / seconds in 1 month
         self.dateSinceEpochMod = min(creationDate.timeIntervalSince1970.rounded(.down),
                                      modificationDate.timeIntervalSince1970.rounded(.down)).rounded(.down) / 2_629_746
-        self.checksums = []
+        self.checksums = [:]
     } // init
 
 
@@ -97,7 +98,35 @@ class File
         }
     }
 
-    
+    public func checksum( size: Int, nextSize: Int ) -> Bool
+    {
+        // if the file size is smaller than the specified size, return an empty string
+        if nextSize > self.size
+        {
+            // print( "checksum:  size = \(size)  >  file size = \(self.size)")
+            return false
+        }
+        // read 'size' bytes of the file and compute a checksum
+        guard let file : FileHandle = FileHandle(forReadingAtPath: fileName) else {
+            print( "checksum:  failed to get file handle.  fileName = \(fileName)")
+            return false
+        }
+        // print( "checksum:  size = \(size),  file size = \(self.size)")
+        file.seek(toFileOffset: 0)
+        let data : Data = file.readData(ofLength: size)
+        // compute checksum using SHA256
+        let hash = SHA256.hash(data: data)
+        let checksum = hash.compactMap { String(format: "%02x", $0) }.joined()
+        checksums[size] = checksum
+        file.closeFile()
+        return true
+    }
+
+    public func name() -> String
+    {
+        return self.fileName
+    }
+
 }
 
 enum FileError: Error, LocalizedError
