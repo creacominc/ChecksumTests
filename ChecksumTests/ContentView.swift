@@ -29,11 +29,13 @@ struct ContentView: View {
     @State var bestResults : [Int:Double] = [:]
     // last results
     @State var lastResults : [Int:Double] = [:]
+    @State var isProcessing: Bool = false
 
     var body: some View
     {
-        VStack()
-        {
+        ZStack {
+            VStack()
+            {
             // folder picker
             HStack
             {
@@ -109,9 +111,27 @@ struct ContentView: View {
                     {
                         bestResults = lastResults
                     }
-                    statusText = "Analyzing files..."
-                    lastResults = tester.process( progress: &progress, thresholds: thresholds, statusText: &statusText )
-                    statusText = "Analysis complete. Found \(Int(totalFiles)) files."
+                    // Enter busy state and run processing off the main thread
+                    isProcessing = true
+                    sourceEnabled = false
+                    processEnabled = false
+                    statusText = "Processing files..."
+
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        var localProgress: Double = 0.0
+                        var localStatus: String = statusText
+                        let results = tester.process( progress: &localProgress, thresholds: thresholds, statusText: &localStatus )
+
+                        DispatchQueue.main.async {
+                            // Update UI after processing completes
+                            self.progress = localProgress
+                            self.lastResults = results
+                            self.statusText = "Processing complete. Found \(Int(totalFiles)) files."
+                            self.isProcessing = false
+                            self.sourceEnabled = true
+                            self.processEnabled = true
+                        }
+                    }
                 }
                 .disabled( !processEnabled )
                 Spacer()
@@ -189,8 +209,28 @@ struct ContentView: View {
             // Status Box
             Text( statusText )
                 .frame( maxWidth: .infinity, alignment: .leading )
+            }
+            .padding( )
+
+            // Busy overlay
+            if isProcessing {
+                Color.black.opacity(0.2)
+                    .ignoresSafeArea()
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                    Text("Processing...")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(NSColor.windowBackgroundColor))
+                        .shadow(radius: 10)
+                )
+            }
         }
-        .padding( )
     }
 }
 
