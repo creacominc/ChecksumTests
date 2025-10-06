@@ -132,17 +132,19 @@ class Tester
         }
     }
 
-    public func process( progress: inout Double, thresholds: [Int]  ) -> [Int:Double]
+    public func process( progress: inout Double, thresholds: [Int], statusText: inout String  ) -> [Int:Double]
     {
         progress = 0.0
         // start a timer for the overall process
         let startTime = Date()
         // results in the form of time per file and checksum size
         var results : [Int:Double] = [:]
+        statusText = "Processing"
         // for each checksum size
         for index : Int in thresholds.indices
         {
             let threshold : Int = thresholds[index]
+            statusText = "Processing \(threshold)"
             let nextThreshosld = (index + 1 < thresholds.count) ? thresholds[index + 1] : threshold
             // print( "Threshold: \(threshold)" )
             var fileCountByThreshold : Int = 0
@@ -182,6 +184,7 @@ class Tester
         let totalTime = endTime.timeIntervalSince(startTime)
         results[ 0 ] = totalTime
         print("Total time: \(totalTime) seconds")
+        statusText = "Total time: \(totalTime) seconds"
         return results
     }
     

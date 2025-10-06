@@ -110,7 +110,7 @@ struct ContentView: View {
                         bestResults = lastResults
                     }
                     statusText = "Analyzing files..."
-                    lastResults = tester.process( progress: &progress, thresholds: thresholds )
+                    lastResults = tester.process( progress: &progress, thresholds: thresholds, statusText: &statusText )
                     statusText = "Analysis complete. Found \(Int(totalFiles)) files."
                 }
                 .disabled( !processEnabled )
@@ -166,6 +166,7 @@ struct ContentView: View {
                         }
                     }
                 }
+                .chartXScale(type: .log)
                 .chartYAxis {
                     AxisMarks(values: .automatic) { value in
                         AxisGridLine()
