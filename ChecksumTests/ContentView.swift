@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 internal import UniformTypeIdentifiers
 
 struct ContentView: View {
@@ -24,6 +25,10 @@ struct ContentView: View {
     @State var totalFiles: Double = 0.0
     @State var progress: Double = 0.0
     @State var fileCountByType: [String: Int] = [:]
+    // best results
+    @State var bestResults : [Int:Double] = [:]
+    // last results
+    @State var lastResults : [Int:Double] = [:]
 
     var body: some View
     {
@@ -99,8 +104,13 @@ struct ContentView: View {
                 Button("Process")
                 {
                     guard let tester = tester else { return }
+                    // save last result
+                    if let lastFirst = lastResults.first?.value, let bestFirst = bestResults.first?.value, lastFirst < bestFirst
+                    {
+                        bestResults = lastResults
+                    }
                     statusText = "Analyzing files..."
-                    tester.process( progress: &progress, thresholds: thresholds )
+                    lastResults = tester.process( progress: &progress, thresholds: thresholds )
                     statusText = "Analysis complete. Found \(Int(totalFiles)) files."
                 }
                 .disabled( !processEnabled )
@@ -112,7 +122,67 @@ struct ContentView: View {
                 .padding()
 
             // results
-            Text("TBD results")
+            if !lastResults.isEmpty || !bestResults.isEmpty {
+                Chart {
+                    // Plot lastResults (excluding first member which is total time)
+                    ForEach(Array(lastResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
+                        LineMark(
+                            x: .value("Threshold", item.key),
+                            y: .value("Time", item.value)
+                        )
+                        .foregroundStyle(.blue)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                    }
+                    .interpolationMethod(.catmullRom)
+                    .symbol {
+                        Image(systemName: "circle.fill")
+                            .foregroundColor(.blue)
+                    }
+                    
+                    // Plot bestResults (excluding first member which is total time)
+                    ForEach(Array(bestResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
+                        LineMark(
+                            x: .value("Threshold", item.key),
+                            y: .value("Time", item.value)
+                        )
+                        .foregroundStyle(.red)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                    }
+                    .interpolationMethod(.catmullRom)
+                    .symbol {
+                        Image(systemName: "diamond.fill")
+                            .foregroundColor(.red)
+                    }
+                }
+                .frame(height: 200)
+                .chartXAxis {
+                    AxisMarks(values: .automatic) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let intValue = value.as(Int.self), intValue>0 {
+                                Text(MultiThumbSlider.formatBytes(Double(intValue)))
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(values: .automatic) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let doubleValue = value.as(Double.self) {
+                                Text(String(format: "%.3f", doubleValue))
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                }
+                .padding()
+            } else {
+                Text("No results yet - click Process to analyze files")
+                    .foregroundColor(.secondary)
+                    .padding()
+            }
             // Spacer
             Spacer()
             // Status Box

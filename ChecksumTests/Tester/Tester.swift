@@ -132,15 +132,17 @@ class Tester
         }
     }
 
-    public func process( progress: inout Double, thresholds: [Int]  )
+    public func process( progress: inout Double, thresholds: [Int]  ) -> [Int:Double]
     {
         progress = 0.0
         // start a timer for the overall process
         let startTime = Date()
+        // results in the form of time per file and checksum size
+        var results : [Int:Double] = [:]
         // for each checksum size
         for index : Int in thresholds.indices
         {
-            let threshold = thresholds[index]
+            let threshold : Int = thresholds[index]
             let nextThreshosld = (index + 1 < thresholds.count) ? thresholds[index + 1] : threshold
             // print( "Threshold: \(threshold)" )
             var fileCountByThreshold : Int = 0
@@ -165,9 +167,12 @@ class Tester
                 }
             }
             // save the size and time in a map by size
-            let thresholdEndTime = Date()
-            let thresholdTime = thresholdEndTime.timeIntervalSince(thresholdStartTime)
-            print("Threshold time: \(thresholdTime) seconds for \(fileCountByThreshold) files,  average time per file: \(thresholdTime / Double(fileCountByThreshold)) seconds")
+            let thresholdEndTime : Date = Date()
+            let thresholdTime : Double = thresholdEndTime.timeIntervalSince(thresholdStartTime)
+            let thresholdTimePerFile : Double = thresholdTime / Double(fileCountByThreshold)
+            print("Threshold size: \(threshold),  time: \(thresholdTime) seconds for \(fileCountByThreshold) files,  average time per file: \(thresholdTimePerFile) seconds")
+            // update results
+            results[ threshold ] = thresholdTimePerFile
             // update the progress
             progress = 100.0 * Double(threshold) / Double(thresholds.count)
         }
@@ -175,7 +180,9 @@ class Tester
         progress = 100.0
         let endTime = Date()
         let totalTime = endTime.timeIntervalSince(startTime)
+        results[ 0 ] = totalTime
         print("Total time: \(totalTime) seconds")
+        return results
     }
     
 }
