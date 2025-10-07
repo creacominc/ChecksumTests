@@ -107,8 +107,10 @@ struct ContentView: View {
                 {
                     guard let tester = tester else { return }
                     // save last result
-                    if let lastFirst = lastResults.first?.value, let bestFirst = bestResults.first?.value, lastFirst < bestFirst
+                    if let lastTotal = lastResults[0],
+                       bestResults.isEmpty || lastTotal < (bestResults[0] ?? Double.infinity)
                     {
+                        statusText = "Copying last to best."
                         bestResults = lastResults
                     }
                     // Enter busy state and run processing off the main thread
@@ -144,6 +146,22 @@ struct ContentView: View {
             // results
             if !lastResults.isEmpty || !bestResults.isEmpty {
                 Chart {
+
+                    // Plot bestResults (excluding first member which is total time)
+                    ForEach(Array(bestResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
+                        LineMark(
+                            x: .value("Threshold", item.key),
+                            y: .value("Time", item.value)
+                        )
+                        .foregroundStyle(.red)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                    }
+                    .interpolationMethod(.catmullRom)
+                    .symbol {
+                        Image(systemName: "diamond.fill")
+                            .foregroundColor(.red)
+                    }
+
                     // Plot lastResults (excluding first member which is total time)
                     ForEach(Array(lastResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
                         LineMark(
@@ -159,20 +177,6 @@ struct ContentView: View {
                             .foregroundColor(.blue)
                     }
                     
-                    // Plot bestResults (excluding first member which is total time)
-                    ForEach(Array(bestResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
-                        LineMark(
-                            x: .value("Threshold", item.key),
-                            y: .value("Time", item.value)
-                        )
-                        .foregroundStyle(.red)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                    }
-                    .interpolationMethod(.catmullRom)
-                    .symbol {
-                        Image(systemName: "diamond.fill")
-                            .foregroundColor(.red)
-                    }
                 }
                 .frame(height: 200)
                 .chartXAxis {
