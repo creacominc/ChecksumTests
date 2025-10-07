@@ -151,30 +151,32 @@ struct ContentView: View {
                     ForEach(Array(bestResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
                         LineMark(
                             x: .value("Threshold", item.key),
-                            y: .value("Time", item.value)
+                            y: .value("Time", item.value),
+                            series: .value("Series", "Best")
                         )
                         .foregroundStyle(.red)
                         .lineStyle(StrokeStyle(lineWidth: 2))
-                    }
-                    .interpolationMethod(.catmullRom)
-                    .symbol {
-                        Image(systemName: "diamond.fill")
-                            .foregroundColor(.red)
+                        .interpolationMethod(.catmullRom)
+                        .symbol {
+                            Image(systemName: "diamond.fill")
+                                .foregroundColor(.red)
+                        }
                     }
 
                     // Plot lastResults (excluding first member which is total time)
                     ForEach(Array(lastResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
                         LineMark(
                             x: .value("Threshold", item.key),
-                            y: .value("Time", item.value)
+                            y: .value("Time", item.value),
+                            series: .value("Series", "Last")
                         )
                         .foregroundStyle(.blue)
                         .lineStyle(StrokeStyle(lineWidth: 2))
-                    }
-                    .interpolationMethod(.catmullRom)
-                    .symbol {
-                        Image(systemName: "circle.fill")
-                            .foregroundColor(.blue)
+                        .interpolationMethod(.catmullRom)
+                        .symbol {
+                            Image(systemName: "circle.fill")
+                                .foregroundColor(.blue)
+                        }
                     }
                     
                 }
