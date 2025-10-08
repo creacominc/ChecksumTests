@@ -31,290 +31,97 @@ struct ContentView: View {
     @State var lastResults : ResultSet = ResultSet()
     @State var isProcessing: Bool = false
 
-    var body: some View
-    {
+    var body: some View {
         ZStack {
-            VStack()
-            {
-            // folder picker
-            HStack
-            {
-                Button("Source")
-                {
-                    // create file open dialog to select a folder
-                    let panel = NSOpenPanel()
-                    panel.canChooseFiles = false
-                    panel.canChooseDirectories = true
-                    panel.allowsMultipleSelection = false
-                    panel.canCreateDirectories = false
-                    panel.message = "Select test directory containing media files"
-                    if panel.runModal() == .OK, let url = panel.url {
-                        sourceURL = url
-                        // Initialize Tester with the selected URL
-                        tester = Tester(sourceURL: url)
-                        guard let tester = tester else {
-                            statusText = "Failed to create tester object"
-                            return
-                        }
-                        processEnabled = true
-                        statusText = "Source directory selected. Click Process to analyze files."
-                        // Update UI with results
-                        totalFiles = tester.getFileCount()
-                        fileCountByType = tester.getFileCountByType()
+            VStack {
+                // Folder picker
+                FolderPickerView(
+                    sourceURL: $sourceURL,
+                    sourceEnabled: $sourceEnabled,
+                    processEnabled: $processEnabled,
+                    statusText: $statusText,
+                    totalFiles: $totalFiles,
+                    fileCountByType: $fileCountByType,
+                    onFolderSelected: { newTester in
+                        tester = newTester
                     }
-                }
-                .disabled( !sourceEnabled )
-                Text( sourceURL?.absoluteString ?? "Select Source Folder" )
+                )
+                
+                // Folder stats
+                FolderStatsView(
+                    totalFiles: Int(totalFiles),
+                    fileCountByType: fileCountByType
+                )
+                
+                // Threshold selector
+                ThresholdSelectorView(thresholds: $thresholds)
+                
+                // Process button
+                ProcessControlView(
+                    processEnabled: $processEnabled,
+                    onProcess: handleProcess
+                )
+                
+                // Progress bar
+                ProgressBarView(progress: progress)
+                
+                // Results charts
+                ResultsChartsView(
+                    bestResults: bestResults,
+                    lastResults: lastResults
+                )
+                
+                // Spacers
+                Spacer()
+                Spacer()
+                
+                // Status text
+                Text(statusText)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            // folder stats
-            HStack(spacing: 24) {
-                Text("Total Files: \(Int(totalFiles))")
-                    .font(.headline)
-                
-                if !fileCountByType.isEmpty {
-                        ForEach(["photo", "audio", "video", "other"], id: \.self) { fileType in
-                            if let count = fileCountByType[fileType], count > 0 {
-                                HStack {
-                                    Text("\(fileType.capitalized):")
-                                        .font(.caption)
-                                    Text("\(count)")
-                                        .font(.caption)
-                                        .monospaced()
-                                }
-                            }
-                        }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // checksum sizes
-            MultiThumbSlider(
-                values: $thresholds,
-                bounds: 512...17179869184, // 512 bytes to 16 GB
-                minSeparation: 64,         // Smaller separation for log scale
-                step: nil                  // No stepping for smooth log scale
-            )
-            Text(
-                thresholds.map { MultiThumbSlider.formatBytes(Double($0))
-                }.joined(separator: ", "))
-                .monospaced()
-                .font(.caption)
-
-            // process button
-            HStack
-            {
-                Button(
-action: {
-                    guard let tester = tester else { return }
-                    // save last result to best if it's better
-                    if !self.lastResults.isEmpty &&
-                       (self.bestResults.isEmpty || self.lastResults.totalTime < self.bestResults.totalTime)
-                    {
-                        statusText = "Copying last to best."
-                        self.bestResults = self.lastResults
-                    }
-                    // Enter busy state and run processing off the main thread
-                    isProcessing = true
-                    sourceEnabled = false
-                    processEnabled = false
-                    statusText = "Processing files..."
-
-                    DispatchQueue.global(qos: .userInitiated).async {
-                        let results : ResultSet = tester.process(
-                            thresholds: thresholds
-                        ) { progressValue, statusMessage in
-                            // Update UI on the main thread
-                            DispatchQueue.main.async {
-                                self.progress = progressValue
-                                self.statusText = statusMessage
-                            }
-                        }
-
-                        DispatchQueue.main.async {
-                            // Update UI after processing completes
-                            self.lastResults = results
-                            self.statusText = "Processing complete. Found \(Int(totalFiles)) files."
-                            self.isProcessing = false
-                            self.sourceEnabled = true
-                            self.processEnabled = true
-                        }
-                    }
-                }) {
-                    Text("Process")
-                }
-                .disabled( !processEnabled )
-                Spacer()
-            }
-            // progress bar using a range based on the number of files
-            ProgressView( value: self.progress, total: 100.0 )
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-
-            // results times and counts
-            if !self.lastResults.isEmpty || !self.bestResults.isEmpty
-            {
-                // times
-                Chart
-                {
-
-                    // Plot bestResults times
-                    ForEach(Array(self.bestResults.results.enumerated()), id: \.offset) { index, result in
-                        LineMark(
-                            x: .value("Threshold", result.getSize()),
-                            y: .value("Time", result.getTime()),
-                            series: .value("Series", "Best")
-                        )
-                        .foregroundStyle(.red)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .interpolationMethod(.catmullRom)
-                        .symbol {
-                            Image(systemName: "diamond.fill")
-                                .foregroundColor(.red)
-                        }
-                    }
-
-                    // Plot lastResults times
-                    ForEach(Array(self.lastResults.results.enumerated()), id: \.offset) { index, result in
-                        LineMark(
-                            x: .value("Threshold", result.getSize()),
-                            y: .value("Time", result.getTime()),
-                            series: .value("Series", "Last")
-                        )
-                        .foregroundStyle(.blue)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .interpolationMethod(.catmullRom)
-                        .symbol {
-                            Image(systemName: "circle.fill")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    
-                } // times
-                .frame(height: 200)
-                .chartXAxis {
-                    AxisMarks(values: .automatic) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let intValue = value.as(Int.self), intValue>0 {
-                                Text(MultiThumbSlider.formatBytes(Double(intValue)))
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                }
-                .chartXScale(type: .log)
-                .chartYAxis {
-                    AxisMarks(values: .automatic) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let doubleValue = value.as(Double.self) {
-                                Text(String(format: "%.3f", doubleValue))
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                }
-                .padding()
-
-                // files completed
-                Chart
-                {
-
-                    // Plot bestResults times
-                    ForEach(Array(self.bestResults.results.enumerated()), id: \.offset) { index, result in
-                        LineMark(
-                            x: .value("Threshold", result.getSize()),
-                            y: .value("Files", result.getCount()),
-                            series: .value("Series", "Best")
-                        )
-                        .foregroundStyle(.red)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .interpolationMethod(.catmullRom)
-                        .symbol {
-                            Image(systemName: "diamond.fill")
-                                .foregroundColor(.red)
-                        }
-                    }
-
-                    // Plot lastResults times
-                    ForEach(Array(self.lastResults.results.enumerated()), id: \.offset) { index, result in
-                        LineMark(
-                            x: .value("Threshold", result.getSize()),
-                            y: .value("Files", result.getCount()),
-                            series: .value("Series", "Last")
-                        )
-                        .foregroundStyle(.blue)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .interpolationMethod(.catmullRom)
-                        .symbol {
-                            Image(systemName: "circle.fill")
-                                .foregroundColor(.blue)
-                        }
-                    }
-
-                } // times
-                .frame(height: 200)
-                .chartXAxis {
-                    AxisMarks(values: .automatic) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let intValue = value.as(Int.self), intValue>0 {
-                                Text(MultiThumbSlider.formatBytes(Double(intValue)))
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                }
-                .chartXScale(type: .log)
-                .chartYAxis {
-                    AxisMarks(values: .automatic) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let doubleValue = value.as(Double.self) {
-                                Text(String(format: "%.3f", doubleValue))
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                }
-                .padding()
-
-            }
-            else
-            {
-                Text("No results yet - click Process to analyze files")
-                    .foregroundColor(.secondary)
-                    .padding()
-            }
-            // Spacer
-            Spacer()
-            // Results Table
-
-            // Spacer
-            Spacer()
-            // Status Box
-            Text( statusText )
-                .frame( maxWidth: .infinity, alignment: .leading )
-            }
-            .padding( )
-
+            .padding()
+            
             // Busy overlay
             if isProcessing {
-                Color.black.opacity(0.2)
-                    .ignoresSafeArea()
-                VStack(spacing: 12) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                    Text("Processing...")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                BusyOverlayView()
+            }
+        }
+    }
+    
+    private func handleProcess() {
+        guard let tester = tester else { return }
+        
+        // Save last result to best if it's better
+        if !lastResults.isEmpty &&
+            (bestResults.isEmpty || lastResults.totalTime < bestResults.totalTime) {
+            statusText = "Copying last to best."
+            bestResults = lastResults
+        }
+        
+        // Enter busy state and run processing off the main thread
+        isProcessing = true
+        sourceEnabled = false
+        processEnabled = false
+        statusText = "Processing files..."
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            let results: ResultSet = tester.process(
+                thresholds: thresholds
+            ) { progressValue, statusMessage in
+                // Update UI on the main thread
+                DispatchQueue.main.async {
+                    self.progress = progressValue
+                    self.statusText = statusMessage
                 }
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(NSColor.windowBackgroundColor))
-                        .shadow(radius: 10)
-                )
+            }
+            
+            DispatchQueue.main.async {
+                // Update UI after processing completes
+                self.lastResults = results
+                self.statusText = "Processing complete. Found \(Int(totalFiles)) files."
+                self.isProcessing = false
+                self.sourceEnabled = true
+                self.processEnabled = true
             }
         }
     }
