@@ -26,9 +26,9 @@ struct ContentView: View {
     @State var progress: Double = 0.0
     @State var fileCountByType: [String: Int] = [:]
     // best results
-    @State var bestResults : [Int:Double] = [:]
+    @State var bestResults : ResultSet = ResultSet()
     // last results
-    @State var lastResults : [Int:Double] = [:]
+    @State var lastResults : ResultSet = ResultSet()
     @State var isProcessing: Bool = false
 
     var body: some View
@@ -103,15 +103,14 @@ struct ContentView: View {
             // process button
             HStack
             {
-                Button("Process")
-                {
+                Button(action: {
                     guard let tester = tester else { return }
-                    // save last result
-                    if let lastTotal = lastResults[0],
-                       bestResults.isEmpty || lastTotal < (bestResults[0] ?? Double.infinity)
+                    // save last result to best if it's better
+                    if !self.lastResults.isEmpty &&
+                       (self.bestResults.isEmpty || self.lastResults.totalTime < self.bestResults.totalTime)
                     {
                         statusText = "Copying last to best."
-                        bestResults = lastResults
+                        self.bestResults = self.lastResults
                     }
                     // Enter busy state and run processing off the main thread
                     isProcessing = true
@@ -134,6 +133,8 @@ struct ContentView: View {
                             self.processEnabled = true
                         }
                     }
+                }) {
+                    Text("Process")
                 }
                 .disabled( !processEnabled )
                 Spacer()
@@ -144,14 +145,14 @@ struct ContentView: View {
                 .padding()
 
             // results
-            if !lastResults.isEmpty || !bestResults.isEmpty {
+            if !self.lastResults.isEmpty || !self.bestResults.isEmpty {
                 Chart {
 
-                    // Plot bestResults (excluding first member which is total time)
-                    ForEach(Array(bestResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
+                    // Plot bestResults
+                    ForEach(Array(self.bestResults.results.enumerated()), id: \.offset) { index, result in
                         LineMark(
-                            x: .value("Threshold", item.key),
-                            y: .value("Time", item.value),
+                            x: .value("Threshold", result.getSize()),
+                            y: .value("Time", result.getTime()),
                             series: .value("Series", "Best")
                         )
                         .foregroundStyle(.red)
@@ -163,11 +164,11 @@ struct ContentView: View {
                         }
                     }
 
-                    // Plot lastResults (excluding first member which is total time)
-                    ForEach(Array(lastResults.sorted(by: { $0.key < $1.key })).dropFirst(), id: \.key) { item in
+                    // Plot lastResults
+                    ForEach(Array(self.lastResults.results.enumerated()), id: \.offset) { index, result in
                         LineMark(
-                            x: .value("Threshold", item.key),
-                            y: .value("Time", item.value),
+                            x: .value("Threshold", result.getSize()),
+                            y: .value("Time", result.getTime()),
                             series: .value("Series", "Last")
                         )
                         .foregroundStyle(.blue)
@@ -210,6 +211,10 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
                     .padding()
             }
+            // Spacer
+            Spacer()
+            // Results Table
+
             // Spacer
             Spacer()
             // Status Box

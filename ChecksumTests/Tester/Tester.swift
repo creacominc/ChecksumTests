@@ -132,13 +132,13 @@ class Tester
         }
     }
 
-    public func process( progress: inout Double, thresholds: [Int], statusText: inout String  ) -> [Int:Double]
+    public func process( progress: inout Double, thresholds: [Int], statusText: inout String  ) -> ResultSet
     {
         progress = 0.0
         // start a timer for the overall process
         let startTime = Date()
         // results in the form of time per file and checksum size
-        var results : [Int:Double] = [:]
+        var resultSet : ResultSet = ResultSet()
         statusText = "Processing"
         // for each checksum size
         for index : Int in thresholds.indices
@@ -148,6 +148,8 @@ class Tester
             let nextThreshosld = (index + 1 < thresholds.count) ? thresholds[index + 1] : threshold
             // print( "Threshold: \(threshold)" )
             var fileCountByThreshold : Int = 0
+            // files smaller or equal in size to this threshold - they need no larger threshold
+            var filesSmallerThanThreadhold : Int = 0
             // start a timer for the checksum size
             let thresholdStartTime = Date()
             // compute the checksum using this size in bytes for each file
@@ -156,6 +158,7 @@ class Tester
                 // print( "Files in this date group: \(files.count)" )
                 for file in files
                 {
+                    filesSmallerThanThreadhold += (file.size() <= Int(threshold)) ? 1 : 0
                     // compute the checksum using this size in bytes for each file
                     let checked : Bool = file.checksum( size: Int(threshold),
                                                         nextSize: Int(nextThreshosld))
@@ -172,9 +175,15 @@ class Tester
             let thresholdEndTime : Date = Date()
             let thresholdTime : Double = thresholdEndTime.timeIntervalSince(thresholdStartTime)
             let thresholdTimePerFile : Double = thresholdTime / Double(fileCountByThreshold)
-            print("Threshold size: \(threshold),  time: \(thresholdTime) seconds for \(fileCountByThreshold) files,  average time per file: \(thresholdTimePerFile) seconds")
+            print("Threshold size: \(threshold),  time: \(thresholdTime) seconds for \(fileCountByThreshold) files,  average time per file: \(thresholdTimePerFile) seconds,  filesSmallerThanThreadhold: \(filesSmallerThanThreadhold)")
             // update results
-            results[ threshold ] = thresholdTimePerFile
+            resultSet.results.append(
+                    Result(
+                        size: threshold,
+                        count: filesSmallerThanThreadhold,
+                        time: thresholdTimePerFile
+                    )
+                )
             // update the progress
             progress = 100.0 * Double(threshold) / Double(thresholds.count)
         }
@@ -182,10 +191,11 @@ class Tester
         progress = 100.0
         let endTime = Date()
         let totalTime = endTime.timeIntervalSince(startTime)
-        results[ 0 ] = totalTime
+        resultSet.totalTime = totalTime
+        resultSet.fileCount = fileCollection.values.count
         print("Total time: \(totalTime) seconds")
         statusText = "Total time: \(totalTime) seconds"
-        return results
+        return resultSet
     }
     
 }

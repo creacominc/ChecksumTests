@@ -11,8 +11,8 @@ import CryptoKit
 
 class File
 {
-    /** 
-    * The File class represents a file object which contains the file name, creation date,
+    /**
+     * The File class represents a file object which contains the file name, creation date,
      * modification date, file type, size, and checksums
      *
      * - Parameter fileName: The name of the file
@@ -24,26 +24,26 @@ class File
     private var fileName: String
     private var fileExtension: String
     private var fileType: FileType = .other
-    private var size: Int
-
+    private var m_size: Int
+    
     private var creationDate: Date
     private var modificationDate: Date
     private var dateSinceEpochMod: Double
     private var checksums: [ Int: String ] = [:]
-
+    
     init( url: URL ) throws
     {
-
+        
         self.fileName = url.path
         self.fileExtension = url.pathExtension.lowercased()
-
+        
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
         guard let size = attributes[.size] as? Int else {
             throw FileError.invalidFileSize
         }
-        self.size = size
-
-
+        self.m_size = size
+        
+        
         self.fileType = FileType.other
         for fileType in FileType.allCases where fileType != .other
         {
@@ -53,7 +53,7 @@ class File
                 break
             }
         }
-
+        
         self.creationDate = attributes[.creationDate] as! Date
         self.modificationDate = attributes[.modificationDate] as! Date
         // using the earlier of the creation and modification dates, save the date as seconds since the epoch / seconds in 1 month
@@ -61,18 +61,18 @@ class File
                                      modificationDate.timeIntervalSince1970.rounded(.down)).rounded(.down) / 2_629_746
         self.checksums = [:]
     } // init
-
-
+    
+    
     public func key() -> Double
     {
         return dateSinceEpochMod
     }
-
+    
     public func type() -> String
     {
         return fileType.rawValue
     }
-
+    
     // File type categories
     public enum FileType: String, CaseIterable
     {
@@ -97,15 +97,15 @@ class File
             }
         }
     }
-
+    
     public func checksum( size: Int, nextSize: Int ) -> Bool
     {
-        // if the file size is smaller than the specified size, return an empty string
-        if nextSize > self.size
-        {
-            // print( "checksum:  size = \(size)  >  file size = \(self.size)")
-            return false
-        }
+        //        // if the file size is smaller than the specified size, return an empty string
+        //        if nextSize > self.size
+        //        {
+        //            // print( "checksum:  size = \(size)  >  file size = \(self.size)")
+        //            return false
+        //        }
         // read 'size' bytes of the file and compute a checksum
         guard let file : FileHandle = FileHandle(forReadingAtPath: fileName) else {
             print( "checksum:  failed to get file handle.  fileName = \(fileName)")
@@ -121,12 +121,17 @@ class File
         file.closeFile()
         return true
     }
-
+    
     public func name() -> String
     {
         return self.fileName
     }
 
+    public func size() -> Int
+    {
+        return self.m_size
+    }
+    
 }
 
 enum FileError: Error, LocalizedError
