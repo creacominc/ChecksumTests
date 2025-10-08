@@ -119,13 +119,16 @@ struct ContentView: View {
                     statusText = "Processing files..."
 
                     DispatchQueue.global(qos: .userInitiated).async {
-                        var localProgress: Double = 0.0
-                        var localStatus: String = statusText
-                        let results = tester.process( progress: &localProgress, thresholds: thresholds, statusText: &localStatus )
+                        let results = tester.process(thresholds: thresholds) { progressValue, statusMessage in
+                            // Update UI on the main thread
+                            DispatchQueue.main.async {
+                                self.progress = progressValue
+                                self.statusText = statusMessage
+                            }
+                        }
 
                         DispatchQueue.main.async {
                             // Update UI after processing completes
-                            self.progress = localProgress
                             self.lastResults = results
                             self.statusText = "Processing complete. Found \(Int(totalFiles)) files."
                             self.isProcessing = false

@@ -132,19 +132,20 @@ class Tester
         }
     }
 
-    public func process( progress: inout Double, thresholds: [Int], statusText: inout String  ) -> ResultSet
+    public func process( thresholds: [Int], progressCallback: @escaping (Double, String) -> Void ) -> ResultSet
     {
-        progress = 0.0
+        progressCallback(0.0, "Processing")
         // start a timer for the overall process
         let startTime = Date()
         // results in the form of time per file and checksum size
         var resultSet : ResultSet = ResultSet()
-        statusText = "Processing"
         // for each checksum size
         for index : Int in thresholds.indices
         {
             let threshold : Int = thresholds[index]
-            statusText = "Processing \(threshold)"
+            let statusText = "Processing \(MultiThumbSlider.formatBytes(Double(threshold)))"
+            progressCallback(100.0 * Double(index) / Double(thresholds.count), statusText)
+            
             let nextThreshosld = (index + 1 < thresholds.count) ? thresholds[index + 1] : threshold
             // print( "Threshold: \(threshold)" )
             var fileCountByThreshold : Int = 0
@@ -153,6 +154,9 @@ class Tester
             // start a timer for the checksum size
             let thresholdStartTime = Date()
             // compute the checksum using this size in bytes for each file
+            var processedFiles = 0
+            let totalFiles = fileCollection.values.reduce(0) { $0 + $1.count }
+            
             for files: [File] in fileCollection.values
             {
                 // print( "Files in this date group: \(files.count)" )
@@ -167,8 +171,13 @@ class Tester
                         fileCountByThreshold += 1
                         // print( "File: \(file.key()), \(file.name()) checked" )
                     }
-                    // update the progress
-                    progress = 100.0 * Double(file.key()) / Double(fileCollection.count)
+                    // update the progress periodically (every 100 files)
+                    processedFiles += 1
+                    if processedFiles % 100 == 0 {
+                        let baseProgress = 100.0 * Double(index) / Double(thresholds.count)
+                        let stepProgress = (100.0 / Double(thresholds.count)) * (Double(processedFiles) / Double(totalFiles))
+                        progressCallback(baseProgress + stepProgress, statusText)
+                    }
                 }
             }
             // save the size and time in a map by size
@@ -184,17 +193,15 @@ class Tester
                         time: thresholdTimePerFile
                     )
                 )
-            // update the progress
-            progress = 100.0 * Double(threshold) / Double(thresholds.count)
         }
         // save the total time
-        progress = 100.0
         let endTime = Date()
         let totalTime = endTime.timeIntervalSince(startTime)
         resultSet.totalTime = totalTime
         resultSet.fileCount = fileCollection.values.count
-        print("Total time: \(totalTime) seconds")
-        statusText = "Total time: \(totalTime) seconds"
+        let finalStatus = "Total time: \(String(format: "%.2f", totalTime)) seconds"
+        print(finalStatus)
+        progressCallback(100.0, finalStatus)
         return resultSet
     }
     
