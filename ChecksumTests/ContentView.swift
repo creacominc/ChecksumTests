@@ -103,7 +103,8 @@ struct ContentView: View {
             // process button
             HStack
             {
-                Button(action: {
+                Button(
+action: {
                     guard let tester = tester else { return }
                     // save last result to best if it's better
                     if !self.lastResults.isEmpty &&
@@ -119,7 +120,9 @@ struct ContentView: View {
                     statusText = "Processing files..."
 
                     DispatchQueue.global(qos: .userInitiated).async {
-                        let results = tester.process(thresholds: thresholds) { progressValue, statusMessage in
+                        let results : ResultSet = tester.process(
+                            thresholds: thresholds
+                        ) { progressValue, statusMessage in
                             // Update UI on the main thread
                             DispatchQueue.main.async {
                                 self.progress = progressValue
@@ -143,15 +146,18 @@ struct ContentView: View {
                 Spacer()
             }
             // progress bar using a range based on the number of files
-            ProgressView( value: progress, total: 100.0 )
+            ProgressView( value: self.progress, total: 100.0 )
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
 
-            // results
-            if !self.lastResults.isEmpty || !self.bestResults.isEmpty {
-                Chart {
+            // results times and counts
+            if !self.lastResults.isEmpty || !self.bestResults.isEmpty
+            {
+                // times
+                Chart
+                {
 
-                    // Plot bestResults
+                    // Plot bestResults times
                     ForEach(Array(self.bestResults.results.enumerated()), id: \.offset) { index, result in
                         LineMark(
                             x: .value("Threshold", result.getSize()),
@@ -167,7 +173,7 @@ struct ContentView: View {
                         }
                     }
 
-                    // Plot lastResults
+                    // Plot lastResults times
                     ForEach(Array(self.lastResults.results.enumerated()), id: \.offset) { index, result in
                         LineMark(
                             x: .value("Threshold", result.getSize()),
@@ -183,7 +189,7 @@ struct ContentView: View {
                         }
                     }
                     
-                }
+                } // times
                 .frame(height: 200)
                 .chartXAxis {
                     AxisMarks(values: .automatic) { value in
@@ -209,7 +215,73 @@ struct ContentView: View {
                     }
                 }
                 .padding()
-            } else {
+
+                // files completed
+                Chart
+                {
+
+                    // Plot bestResults times
+                    ForEach(Array(self.bestResults.results.enumerated()), id: \.offset) { index, result in
+                        LineMark(
+                            x: .value("Threshold", result.getSize()),
+                            y: .value("Files", result.getCount()),
+                            series: .value("Series", "Best")
+                        )
+                        .foregroundStyle(.red)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .interpolationMethod(.catmullRom)
+                        .symbol {
+                            Image(systemName: "diamond.fill")
+                                .foregroundColor(.red)
+                        }
+                    }
+
+                    // Plot lastResults times
+                    ForEach(Array(self.lastResults.results.enumerated()), id: \.offset) { index, result in
+                        LineMark(
+                            x: .value("Threshold", result.getSize()),
+                            y: .value("Files", result.getCount()),
+                            series: .value("Series", "Last")
+                        )
+                        .foregroundStyle(.blue)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .interpolationMethod(.catmullRom)
+                        .symbol {
+                            Image(systemName: "circle.fill")
+                                .foregroundColor(.blue)
+                        }
+                    }
+
+                } // times
+                .frame(height: 200)
+                .chartXAxis {
+                    AxisMarks(values: .automatic) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let intValue = value.as(Int.self), intValue>0 {
+                                Text(MultiThumbSlider.formatBytes(Double(intValue)))
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                }
+                .chartXScale(type: .log)
+                .chartYAxis {
+                    AxisMarks(values: .automatic) { value in
+                        AxisGridLine()
+                        AxisValueLabel {
+                            if let doubleValue = value.as(Double.self) {
+                                Text(String(format: "%.3f", doubleValue))
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                }
+                .padding()
+
+            }
+            else
+            {
                 Text("No results yet - click Process to analyze files")
                     .foregroundColor(.secondary)
                     .padding()

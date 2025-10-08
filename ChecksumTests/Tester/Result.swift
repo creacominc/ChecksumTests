@@ -24,7 +24,12 @@ class Result
         self.count = count
         self.time = time
     }
-    
+
+    func getSizeFormatted() -> String
+    {
+        MultiThumbSlider.formatBytes( Double(size) )
+    }
+
     func getSize() -> Int {
         return size
     }

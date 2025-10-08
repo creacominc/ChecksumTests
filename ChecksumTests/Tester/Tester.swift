@@ -42,7 +42,6 @@ class Tester
      */
     init(sourceURL: URL) {
         self.sourceURL = sourceURL
-        //resetStats()
         getNumberOfFiles()
     }
     
@@ -50,26 +49,27 @@ class Tester
      * Reset the file count statistics
      */
     private func resetStats() {
-        fileCount = 0.0
-        fileCountByType = [:]
+        self.fileCount = 0.0
+        self.fileCountByType = [:]
         // Initialize counts for each file type
         for fileType in File.FileType.allCases {
-            fileCountByType[fileType.rawValue] = 0
+            self.fileCountByType[fileType.rawValue] = 0
         }
+        self.fileCollection = [:]
     }
     
     /**
      * Get the current file count
      */
     func getFileCount() -> Double {
-        return fileCount
+        return self.fileCount
     }
     
     /**
      * Get the current file count by type
      */
     func getFileCountByType() -> [String: Int] {
-        return fileCountByType
+        return self.fileCountByType
     }
     
     /**
@@ -135,6 +135,8 @@ class Tester
     public func process( thresholds: [Int], progressCallback: @escaping (Double, String) -> Void ) -> ResultSet
     {
         progressCallback(0.0, "Processing")
+        // reset all stats and file info:
+        getNumberOfFiles()
         // start a timer for the overall process
         let startTime = Date()
         // results in the form of time per file and checksum size
@@ -146,7 +148,7 @@ class Tester
             let statusText = "Processing \(MultiThumbSlider.formatBytes(Double(threshold)))"
             progressCallback(100.0 * Double(index) / Double(thresholds.count), statusText)
             
-            let nextThreshosld = (index + 1 < thresholds.count) ? thresholds[index + 1] : threshold
+            // let nextThreshosld = (index + 1 < thresholds.count) ? thresholds[index + 1] : threshold
             // print( "Threshold: \(threshold)" )
             var fileCountByThreshold : Int = 0
             // files smaller or equal in size to this threshold - they need no larger threshold
@@ -164,8 +166,7 @@ class Tester
                 {
                     filesSmallerThanThreadhold += (file.size() <= Int(threshold)) ? 1 : 0
                     // compute the checksum using this size in bytes for each file
-                    let checked : Bool = file.checksum( size: Int(threshold),
-                                                        nextSize: Int(nextThreshosld))
+                    let checked : Bool = file.checksum( size: Int(threshold) )
                     if checked
                     {
                         fileCountByThreshold += 1
@@ -178,13 +179,15 @@ class Tester
                         let stepProgress = (100.0 / Double(thresholds.count)) * (Double(processedFiles) / Double(totalFiles))
                         progressCallback(baseProgress + stepProgress, statusText)
                     }
-                }
-            }
+                } // files
+            } // fileCollection.values
             // save the size and time in a map by size
             let thresholdEndTime : Date = Date()
             let thresholdTime : Double = thresholdEndTime.timeIntervalSince(thresholdStartTime)
             let thresholdTimePerFile : Double = thresholdTime / Double(fileCountByThreshold)
-            print("Threshold size: \(threshold),  time: \(thresholdTime) seconds for \(fileCountByThreshold) files,  average time per file: \(thresholdTimePerFile) seconds,  filesSmallerThanThreadhold: \(filesSmallerThanThreadhold)")
+            print(
+                "Threshold size: \(MultiThumbSlider.formatBytes(Double(threshold))),  time: \(thresholdTime) seconds for \(fileCountByThreshold) files,  average time per file: \(thresholdTimePerFile) seconds,  filesSmallerThanThreadhold: \(filesSmallerThanThreadhold)"
+            )
             // update results
             resultSet.results.append(
                     Result(
@@ -193,7 +196,7 @@ class Tester
                         time: thresholdTimePerFile
                     )
                 )
-        }
+        } // thresholds.indices
         // save the total time
         let endTime = Date()
         let totalTime = endTime.timeIntervalSince(startTime)

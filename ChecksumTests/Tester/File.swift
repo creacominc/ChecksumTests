@@ -30,10 +30,10 @@ class File
     private var modificationDate: Date
     private var dateSinceEpochMod: Double
     private var checksums: [ Int: String ] = [:]
-    
+    private var checksumsCompleted : Bool = false
+
     init( url: URL ) throws
     {
-        
         self.fileName = url.path
         self.fileExtension = url.pathExtension.lowercased()
         
@@ -60,6 +60,7 @@ class File
         self.dateSinceEpochMod = min(creationDate.timeIntervalSince1970.rounded(.down),
                                      modificationDate.timeIntervalSince1970.rounded(.down)).rounded(.down) / 2_629_746
         self.checksums = [:]
+        self.checksumsCompleted = false
     } // init
     
     
@@ -97,15 +98,14 @@ class File
             }
         }
     }
-    
-    public func checksum( size: Int, nextSize: Int ) -> Bool
+
+    /**
+     * return true if checksum is performed.
+     */
+    public func checksum( size: Int ) -> Bool
     {
-        //        // if the file size is smaller than the specified size, return an empty string
-        //        if nextSize > self.size
-        //        {
-        //            // print( "checksum:  size = \(size)  >  file size = \(self.size)")
-        //            return false
-        //        }
+        // return false if no further checksums are needed.
+        guard self.checksumsCompleted == false else { return false }
         // read 'size' bytes of the file and compute a checksum
         guard let file : FileHandle = FileHandle(forReadingAtPath: fileName) else {
             print( "checksum:  failed to get file handle.  fileName = \(fileName)")
@@ -117,7 +117,9 @@ class File
         // compute checksum using SHA256
         let hash = SHA256.hash(data: data)
         let checksum = hash.compactMap { String(format: "%02x", $0) }.joined()
-        checksums[size] = checksum
+        self.checksums[size] = checksum
+        // mark the checksums as completed if the checksum size exceeds the file size
+        self.checksumsCompleted = ( size > self.m_size )
         file.closeFile()
         return true
     }
