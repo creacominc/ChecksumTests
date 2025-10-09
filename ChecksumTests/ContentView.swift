@@ -56,6 +56,9 @@ struct ContentView: View {
                 // Threshold selector
                 ThresholdSelectorView(thresholds: $thresholds)
                 
+                // File size distribution chart
+                FileSizeChart(thresholds: thresholds, tester: tester)
+                
                 // Process button
                 ProcessControlView(
                     processEnabled: $processEnabled,

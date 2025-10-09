@@ -15,7 +15,7 @@ struct ThresholdSelectorView: View {
             MultiThumbSlider(
                 values: $thresholds,
                 bounds: 512...17179869184, // 512 bytes to 16 GB
-                minSeparation: 64,         // Smaller separation for log scale
+                minSeparation: 256,        // Smaller separation for log scale
                 step: nil                  // No stepping for smooth log scale
             )
             Text(

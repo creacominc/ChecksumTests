@@ -40,6 +40,9 @@ struct MultiThumbSlider: View {
                 let localX = max(0, min(trackWidth, g.location.x - thumbDiameter / 2))
                 var newValue = value(forX: localX, width: trackWidth)
                 
+                // Snap to multiples of 256
+                newValue = (newValue / 256.0).rounded() * 256.0
+                
                 // For logarithmic scale, we need to adjust snapping to work in log space
                 if let step, step > 0 {
                     // Convert step to log space for consistent snapping
@@ -47,6 +50,8 @@ struct MultiThumbSlider: View {
                     let logValue = log10(newValue / bounds.lowerBound)
                     let snappedLogValue = (logValue / logStep).rounded() * logStep
                     newValue = bounds.lowerBound * pow(10, snappedLogValue)
+                    // Snap again to ensure multiple of 256
+                    newValue = (newValue / 256.0).rounded() * 256.0
                 }
                 
                 // enforce ordering and min separation (using proportional separation for log scale)
@@ -117,7 +122,7 @@ struct MultiThumbSlider: View {
         MultiThumbSlider(
             values: $thresholds,
             bounds: 512...17179869184, // 512 bytes to 16 GB
-            minSeparation: 64,         // Smaller separation for log scale
+            minSeparation: 256,         // Smaller separation for log scale
             step: nil                  // No stepping for smooth log scale
         )
         VStack(spacing: 8) {

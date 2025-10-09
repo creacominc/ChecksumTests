@@ -8,12 +8,15 @@
 import SwiftUI
 import Charts
 
-struct ResultsChartsView: View {
+struct ResultsChartsView: View
+{
     let bestResults: ResultSet
     let lastResults: ResultSet
     
-    var body: some View {
-        if !lastResults.isEmpty || !bestResults.isEmpty {
+    var body: some View
+    {
+        if !lastResults.isEmpty || !bestResults.isEmpty
+        {
             VStack {
                 // Times Chart
                 Chart {
@@ -74,73 +77,15 @@ struct ResultsChartsView: View {
                     }
                 }
                 .padding()
-                
-                // Files Completed Chart
-                Chart {
-                    // Plot bestResults file counts
-                    ForEach(Array(bestResults.results.enumerated()), id: \.offset) { index, result in
-                        LineMark(
-                            x: .value("Threshold", result.getSize()),
-                            y: .value("Files", result.getCount()),
-                            series: .value("Series", "Best")
-                        )
-                        .foregroundStyle(.red)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .interpolationMethod(.catmullRom)
-                        .symbol {
-                            Image(systemName: "diamond.fill")
-                                .foregroundColor(.red)
-                        }
-                    }
-                    
-                    // Plot lastResults file counts
-                    ForEach(Array(lastResults.results.enumerated()), id: \.offset) { index, result in
-                        LineMark(
-                            x: .value("Threshold", result.getSize()),
-                            y: .value("Files", result.getCount()),
-                            series: .value("Series", "Last")
-                        )
-                        .foregroundStyle(.blue)
-                        .lineStyle(StrokeStyle(lineWidth: 2))
-                        .interpolationMethod(.catmullRom)
-                        .symbol {
-                            Image(systemName: "circle.fill")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                }
-                .frame(height: 200)
-                .chartXAxis {
-                    AxisMarks(values: .automatic) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let intValue = value.as(Int.self), intValue > 0 {
-                                Text(MultiThumbSlider.formatBytes(Double(intValue)))
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                }
-                .chartXScale(type: .log)
-                .chartYAxis {
-                    AxisMarks(values: .automatic) { value in
-                        AxisGridLine()
-                        AxisValueLabel {
-                            if let doubleValue = value.as(Double.self) {
-                                Text(String(format: "%.3f", doubleValue))
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                }
-                .padding()
-            }
-        } else {
+            } // VStack
+        } // lastResults.isEmpty
+        else
+        {
             Text("No results yet - click Process to analyze files")
                 .foregroundColor(.secondary)
                 .padding()
-        }
-    }
+        } // lastResults.isEmpty
+    } // body
 }
 
 #Preview {

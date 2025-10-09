@@ -73,6 +73,21 @@ class Tester
     }
     
     /**
+     * Count files with size less than or equal to the given threshold
+     */
+    func countFilesAtOrBelowThreshold(_ threshold: Int) -> Int {
+        var count = 0
+        for files in fileCollection.values {
+            for file in files {
+                if file.size() <= threshold {
+                    count += 1
+                }
+            }
+        }
+        return count
+    }
+    
+    /**
      * Get the total number of files and breakdown by file type in the source directory
      * This method sets the internal fileCount and fileCountByType properties
      */
