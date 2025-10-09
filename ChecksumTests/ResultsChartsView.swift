@@ -18,6 +18,10 @@ struct ResultsChartsView: View
         if !lastResults.isEmpty || !bestResults.isEmpty
         {
             VStack {
+                Text("Sum Times Distribution")
+                    .font(.headline)
+                    .padding(.bottom, 4)
+                
                 // Times Chart
                 Chart {
                     // Plot bestResults times
