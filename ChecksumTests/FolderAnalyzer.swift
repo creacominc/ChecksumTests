@@ -6,6 +6,7 @@
 //
 
 import Foundation
+internal import UniformTypeIdentifiers
 
 /// Observable class to handle folder analysis on background thread
 @Observable
@@ -16,7 +17,7 @@ class FolderAnalyzer
     var totalSize: Int64 = 0
     var fileSizeDistribution: [String: Int] = [:]
     
-    func analyzeFolderStats(url: URL)
+    func analyzeFolderStats(url: URL, into fileSetBySize: FileSetBySize)
     {
         isAnalyzing = true
         fileCount = 0
@@ -24,37 +25,66 @@ class FolderAnalyzer
         fileSizeDistribution = [:]
         
         // Perform analysis on background queue (Swift 6 requirement)
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async
+        {
             var count = 0
             var size: Int64 = 0
+            let mediaFiles = FileSetBySize()  // Temporary collection for background thread
             
-            do {
+            do
+            {
+                // create a file manager to iterate over files
                 let fileManager = FileManager.default
-                
+                // create the enumerator on the file manager using the url
                 if let enumerator = fileManager.enumerator(
                     at: url,
-                    includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey],
+                    includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey, .contentTypeKey],
                     options: [.skipsHiddenFiles]
                 )
                 {
                     for case let fileURL as URL in enumerator
                     {
-                        let resourceValues = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+                        let resourceValues = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey, .contentTypeKey])
                         
-                        if let isRegularFile = resourceValues.isRegularFile, isRegularFile {
-                            count += 1
+                        // Only process regular files (not directories)
+                        guard let isRegularFile = resourceValues.isRegularFile, isRegularFile else {
+                            continue
+                        }
+                        
+                        // Check if file is a media file (audio, video, or image)
+                        if let contentType = resourceValues.contentType
+                        {
+                            let isMediaFile = contentType.conforms(to: .audio) ||
+                                            contentType.conforms(to: .video) ||
+                                            contentType.conforms(to: .image)
                             
-                            if let fileSize = resourceValues.fileSize {
+                            if isMediaFile, let fileSize = resourceValues.fileSize
+                            {
+                                count += 1
                                 size += Int64(fileSize)
+                                
+                                // Create MediaFile and add to temporary collection
+                                let mediaFile = MediaFile(fileName: fileURL.path(), fileSize: fileSize)
+                                mediaFiles.append(mediaFile)
                             }
                         }
                     }
                 }
                 
-                // Update properties on main thread
+                // Update properties and fileSetBySize on main thread
                 DispatchQueue.main.async {
                     self.fileCount = count
                     self.totalSize = size
+                    
+                    // Copy all files to the provided collection
+                    for size in mediaFiles.allSizes {
+                        if let files = mediaFiles[size] {
+                            for file in files {
+                                fileSetBySize.append(file)
+                            }
+                        }
+                    }
+                    
                     self.isAnalyzing = false
                 }
             } catch {

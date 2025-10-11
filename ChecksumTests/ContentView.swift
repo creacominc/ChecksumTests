@@ -6,13 +6,15 @@
 //
 
 import SwiftUI
-internal import UniformTypeIdentifiers
+// internal import UniformTypeIdentifiers
 
 struct ContentView: View
 {
     @State var sourceURL: URL?
     @State var folderSelected: Bool = false
     @State var sourceEnabled: Bool = true
+    @State var fileSetBySize = FileSetBySize()
+
 //    let numberOfChecksumSizes: Int = 6
 //    @State var thresholds: [Double] = [
 //        512,
@@ -34,7 +36,8 @@ struct ContentView: View
             )
 
             // folder stats
-            FolderStatsView( sourceURL: sourceURL )
+            FolderStatsView( sourceURL: sourceURL
+                             , fileSetBySize: $fileSetBySize )
 
 //            // checksum sizes
 //            MultiThumbSlider(

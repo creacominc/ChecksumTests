@@ -14,7 +14,10 @@ struct FolderStatsView: View
     
     // [internal] Analyzer to handle folder statistics
     @State private var analyzer = FolderAnalyzer()
-    
+
+    // file set by size from the contentView
+    @Binding var fileSetBySize: FileSetBySize
+
     var body: some View
     {
         VStack(alignment: .leading, spacing: 8)
@@ -50,7 +53,7 @@ struct FolderStatsView: View
             // This closure is called whenever sourceURL changes
             if let url = newValue
             {
-                analyzer.analyzeFolderStats(url: url)
+                analyzer.analyzeFolderStats(url: url, into: fileSetBySize)
             }
             else
             {
@@ -63,7 +66,7 @@ struct FolderStatsView: View
             // Also analyze on first appearance if URL is already set
             if let url = sourceURL
             {
-                analyzer.analyzeFolderStats(url: url)
+                analyzer.analyzeFolderStats(url: url, into: fileSetBySize)
             }
         }
     }
@@ -80,14 +83,15 @@ struct FolderStatsView: View
 #Preview("None Selected")
 {
     @Previewable @State var sourceURL: URL? = nil
-    FolderStatsView( sourceURL: sourceURL )
+    @Previewable @State var fileSetBySize = FileSetBySize()
+    
+    FolderStatsView(sourceURL: sourceURL, fileSetBySize: $fileSetBySize)
 }
 
 #Preview("Selected")
 {
-    @Previewable @State var sourceURL: URL = URL(
-        filePath: "~/Downloads"
-    )
+    @Previewable @State var sourceURL: URL? = URL(filePath: "~/Downloads")
+    @Previewable @State var fileSetBySize = FileSetBySize()
     
-    FolderStatsView( sourceURL: sourceURL )
+    FolderStatsView(sourceURL: sourceURL, fileSetBySize: $fileSetBySize)
 }
