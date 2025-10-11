@@ -33,6 +33,9 @@ struct ContentView: View
                 sourceEnabled: $sourceEnabled
             )
 
+            // folder stats
+            FolderStatsView( sourceURL: sourceURL )
+
 //            // checksum sizes
 //            MultiThumbSlider(
 //                values: $thresholds,
