@@ -21,6 +21,9 @@ struct FileSizeDistributionView: View
     // Chart type selection
     @State private var useLineChart: Bool = false
 
+    // set to true when ready to process
+    @Binding var processEnabled: Bool
+
     // Auxiliary for formatting byte sizes (KB, MB, ...)
     func formatBytes(_ bytes: Int) -> String {
         let formatter = ByteCountFormatter()
@@ -100,24 +103,42 @@ struct FileSizeDistributionView: View
                 .id(updateDistribution)
 
                 // Show min/max labels below the chart, formatted
-                HStack {
-                    if let min = sizes.min(), let max = sizes.max() {
+                HStack
+                {
+                    if let min = sizes.min(), let max = sizes.max()
+                    {
                         Text("Min: \(formatBytes(min))").font(.caption)
                         Spacer()
                         Text("Max: \(formatBytes(max))").font(.caption)
-                        if sizes.count > 20 {
+                        if sizes.count > 20
+                        {
                             Spacer()
                             Text("(\(sizes.count) unique sizes, showing bins)").font(.caption).foregroundColor(.secondary)
                         }
                     }
                 }
                 .padding(.top, 4)
-            }
+            } // data is not empty
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(8)
+        .onChange(of: updateDistribution) { oldValue, newValue in
+            // Enable processing when analysis is complete and there's data
+            // Disable processing when analysis is in progress (updateDistribution = false)
+            if newValue {
+                // Analysis is complete - enable if we have data
+                processEnabled = fileSetBySize.totalFileCount > 0
+            } else {
+                // Analysis is in progress or URL changed - disable
+                processEnabled = false
+            }
+        }
+        .onAppear {
+            // Set initial state based on current data
+            processEnabled = updateDistribution && fileSetBySize.totalFileCount > 0
+        }
     }
     
     // MARK: - Private Methods
@@ -201,10 +222,12 @@ struct FileSizeDistributionView: View
 
 #Preview
 {
-    @Previewable @State var fileSetBySize = FileSetBySize()
-    @Previewable @State var updateDistribution = false
+    @Previewable @State var fileSetBySize: FileSetBySize = FileSetBySize()
+    @Previewable @State var updateDistribution: Bool = false
+    @Previewable @State var processEnabled: Bool = false
 
     FileSizeDistributionView( fileSetBySize: $fileSetBySize
                               , updateDistribution: $updateDistribution
+                              , processEnabled: $processEnabled
     )
 }

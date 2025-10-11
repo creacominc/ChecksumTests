@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-// internal import UniformTypeIdentifiers
 
 struct ContentView: View
 {
@@ -15,15 +14,7 @@ struct ContentView: View
     @State var sourceEnabled: Bool = true
     @State var fileSetBySize = FileSetBySize()
     @State var updateDistribution: Bool = false
-
-//    let numberOfChecksumSizes: Int = 6
-//    @State var thresholds: [Double] = [
-//        512,
-//        8192,
-//        1048576,
-//        268435456,
-//        17179869184
-//    ]
+    @State var processEnabled: Bool = false
 
     var body: some View
     {
@@ -42,33 +33,23 @@ struct ContentView: View
                              , fileSetBySize: $fileSetBySize )
             FileSizeDistributionView( fileSetBySize: $fileSetBySize
                                       , updateDistribution: $updateDistribution
+                                      , processEnabled: $processEnabled
             )
 
-//            // checksum sizes
-//            MultiThumbSlider(
-//                values: $thresholds,
-//                bounds: 512...17179869184, // 512 bytes to 16 GB
-//                minSeparation: 64,         // Smaller separation for log scale
-//                step: nil                  // No stepping for smooth log scale
-//            )
-//            Text(thresholds.map { MultiThumbSlider.formatBytes($0) }.joined(separator: ", "))
-//                .monospaced()
-//                .font(.caption)
-//
-//            // process button
-//            HStack
-//            {
-//                Button("Process")
-//                {
-//                    
-//                }
-//                .disabled( !processEnabled )
-//                Spacer()
-//            }
-//            // progress bar
-//            Text("TBD progress bar")
-//            // results
-//            Text("TBD results")
+            // process button
+            HStack
+            {
+                Button("Process")
+                {
+                    
+                }
+                .disabled( !processEnabled )
+                Spacer()
+            }
+            // progress bar
+            Text("TBD progress bar")
+            // results
+            Text("TBD results")
         }
         .padding( )
         Spacer()
