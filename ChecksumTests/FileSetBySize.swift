@@ -40,6 +40,16 @@ class FileSetBySize: Codable
         }
     }
     
+    /// Removes all files from the collection
+    func removeAll() {
+        fileSetsBySize.removeAll()
+    }
+    
+    /// Replaces all contents with another FileSetBySize - O(1) operation
+    func replaceAll(with other: FileSetBySize) {
+        fileSetsBySize = other.fileSetsBySize
+    }
+    
     // MARK: - Efficient Read Access (no array copying)
     
     /// Returns count of files for a given size without copying the array

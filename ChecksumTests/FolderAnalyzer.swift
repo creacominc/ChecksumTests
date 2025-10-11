@@ -76,14 +76,8 @@ class FolderAnalyzer
                     self.fileCount = count
                     self.totalSize = size
                     
-                    // Copy all files to the provided collection
-                    for size in mediaFiles.allSizes {
-                        if let files = mediaFiles[size] {
-                            for file in files {
-                                fileSetBySize.append(file)
-                            }
-                        }
-                    }
+                    // Replace entire collection - O(1) operation, no copying
+                    fileSetBySize.replaceAll(with: mediaFiles)
                     
                     self.isAnalyzing = false
                 }
