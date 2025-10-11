@@ -8,7 +8,8 @@
 import Foundation
 
 // class representing a map of sets of files collected by size
-class FileSetBySize: Codable
+@Observable
+class FileSetBySize
 {
     private(set) var fileSetsBySize: [Int: [MediaFile]] = [:]
     

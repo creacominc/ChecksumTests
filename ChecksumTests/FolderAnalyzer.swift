@@ -17,7 +17,7 @@ class FolderAnalyzer
     var totalSize: Int64 = 0
     var fileSizeDistribution: [String: Int] = [:]
     
-    func analyzeFolderStats(url: URL, into fileSetBySize: FileSetBySize)
+    func analyzeFolderStats(url: URL, into fileSetBySize: FileSetBySize, completion: (() -> Void)? = nil)
     {
         isAnalyzing = true
         fileCount = 0
@@ -55,14 +55,14 @@ class FolderAnalyzer
                         if let contentType = resourceValues.contentType
                         {
                             let isMediaFile = contentType.conforms(to: .audio) ||
-                                            contentType.conforms(to: .video) ||
-                                            contentType.conforms(to: .image)
+                                              contentType.conforms(to: .video) ||
+                                              contentType.conforms(to: .image)
                             
                             if isMediaFile, let fileSize = resourceValues.fileSize
                             {
                                 count += 1
                                 size += Int64(fileSize)
-                                
+                                // print("Analyzing: \(fileURL.path()) - \(fileSize) bytes,   count = \(count),  size = \(size)")
                                 // Create MediaFile and add to temporary collection
                                 let mediaFile = MediaFile(fileName: fileURL.path(), fileSize: fileSize)
                                 mediaFiles.append(mediaFile)
@@ -75,16 +75,21 @@ class FolderAnalyzer
                 DispatchQueue.main.async {
                     self.fileCount = count
                     self.totalSize = size
-                    
+                    print("Analyzed:  count = \(count),  size = \(size)")
+
                     // Replace entire collection - O(1) operation, no copying
                     fileSetBySize.replaceAll(with: mediaFiles)
                     
                     self.isAnalyzing = false
+                    
+                    // Call completion handler after analysis is done
+                    completion?()
                 }
             } catch {
                 print("Error analyzing folder: \(error)")
                 DispatchQueue.main.async {
                     self.isAnalyzing = false
+                    completion?()
                 }
             }
         }

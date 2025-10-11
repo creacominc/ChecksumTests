@@ -14,6 +14,7 @@ struct ContentView: View
     @State var folderSelected: Bool = false
     @State var sourceEnabled: Bool = true
     @State var fileSetBySize = FileSetBySize()
+    @State var updateDistribution: Bool = false
 
 //    let numberOfChecksumSizes: Int = 6
 //    @State var thresholds: [Double] = [
@@ -37,7 +38,11 @@ struct ContentView: View
 
             // folder stats
             FolderStatsView( sourceURL: sourceURL
+                             , updateDistribution: $updateDistribution
                              , fileSetBySize: $fileSetBySize )
+            FileSizeDistributionView( fileSetBySize: $fileSetBySize
+                                      , updateDistribution: $updateDistribution
+            )
 
 //            // checksum sizes
 //            MultiThumbSlider(

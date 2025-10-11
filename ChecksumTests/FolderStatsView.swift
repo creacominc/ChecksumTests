@@ -11,7 +11,10 @@ struct FolderStatsView: View
 {
     // [in] URL to be set when the user selects a path
     var sourceURL: URL?
-    
+
+    // [inout] updateDistribution - set this when updated
+    @Binding var updateDistribution: Bool
+
     // [internal] Analyzer to handle folder statistics
     @State private var analyzer = FolderAnalyzer()
 
@@ -24,6 +27,7 @@ struct FolderStatsView: View
         {
             if let url = sourceURL
             {
+                // Folder path text field
                 Text("Folder: \(url.path())")
                     .font(.headline)
 
@@ -33,9 +37,15 @@ struct FolderStatsView: View
                 }
                 else
                 {
+                    // Folder stats
                     Text("Files: \(analyzer.fileCount)")
                     Text("Total Size: \(formatBytes(analyzer.totalSize))")
-                    // Add more stats display here as needed
+                    Text(
+                        "Number of Sizes with only one file: \(fileSetBySize.sizesWithOnlyOneFile.count)"
+                    )
+                    Text(
+                        "Number of sizes with multiple files: \(fileSetBySize.sizesWithMultipleFiles.count)"
+                    )
                 }
             }
             else
@@ -50,10 +60,14 @@ struct FolderStatsView: View
         .cornerRadius(8)
         .onChange(of: sourceURL)
         { oldValue, newValue in
+            updateDistribution = false
             // This closure is called whenever sourceURL changes
             if let url = newValue
             {
-                analyzer.analyzeFolderStats(url: url, into: fileSetBySize)
+                analyzer.analyzeFolderStats(url: url, into: fileSetBySize) {
+                    // This completion handler is called when analysis is done
+                    updateDistribution = true
+                }
             }
             else
             {
@@ -63,10 +77,14 @@ struct FolderStatsView: View
         }
         .onAppear
         {
+            updateDistribution = false
             // Also analyze on first appearance if URL is already set
             if let url = sourceURL
             {
-                analyzer.analyzeFolderStats(url: url, into: fileSetBySize)
+                analyzer.analyzeFolderStats(url: url, into: fileSetBySize) {
+                    // This completion handler is called when analysis is done
+                    updateDistribution = true
+                }
             }
         }
     }
@@ -84,14 +102,22 @@ struct FolderStatsView: View
 {
     @Previewable @State var sourceURL: URL? = nil
     @Previewable @State var fileSetBySize = FileSetBySize()
+    @Previewable @State var updateDistribution = false
     
-    FolderStatsView(sourceURL: sourceURL, fileSetBySize: $fileSetBySize)
+    FolderStatsView(sourceURL: sourceURL
+                    , updateDistribution: $updateDistribution
+                    , fileSetBySize: $fileSetBySize
+    )
 }
 
 #Preview("Selected")
 {
     @Previewable @State var sourceURL: URL? = URL(filePath: "~/Downloads")
     @Previewable @State var fileSetBySize = FileSetBySize()
-    
-    FolderStatsView(sourceURL: sourceURL, fileSetBySize: $fileSetBySize)
+    @Previewable @State var updateDistribution = false
+
+    FolderStatsView(sourceURL: sourceURL
+                    , updateDistribution: $updateDistribution
+                    , fileSetBySize: $fileSetBySize
+    )
 }
