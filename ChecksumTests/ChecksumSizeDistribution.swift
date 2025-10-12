@@ -25,6 +25,30 @@ struct ChecksumSizeDistribution: View
     @State private var isProcessing: Bool = false
     // Cancellation flag
     @State private var shouldCancel: Bool = false
+    // Sorting state
+    @State private var sortColumn: SortColumn = .fileSize
+    @State private var sortAscending: Bool = true
+    
+    enum SortColumn {
+        case fileSize
+        case bytesNeeded
+    }
+    
+    // Helper function to get sorted data
+    private func sortedData() -> [(Int, Int)] {
+        let dataArray = bytesNeededBySize.map { ($0.key, $0.value) }
+        
+        switch sortColumn {
+        case .fileSize:
+            return dataArray.sorted { 
+                sortAscending ? $0.0 < $1.0 : $0.0 > $1.0
+            }
+        case .bytesNeeded:
+            return dataArray.sorted { 
+                sortAscending ? $0.1 < $1.1 : $0.1 > $1.1
+            }
+        }
+    }
 
     var body: some View
     {
@@ -102,12 +126,49 @@ struct ChecksumSizeDistribution: View
                     // Table header
                     HStack
                     {
-                        Text("File Size (bytes)")
+                        Button(action: {
+                            if sortColumn == .fileSize {
+                                sortAscending.toggle()
+                            } else {
+                                sortColumn = .fileSize
+                                sortAscending = true
+                            }
+                        }) {
+                            HStack {
+                                Text("File Size (bytes)")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                if sortColumn == .fileSize {
+                                    Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
+                                        .font(.caption)
+                                        .foregroundColor(.primary)
+                                }
+                            }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .fontWeight(.semibold)
-                        Text("Bytes Needed")
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Button(action: {
+                            if sortColumn == .bytesNeeded {
+                                sortAscending.toggle()
+                            } else {
+                                sortColumn = .bytesNeeded
+                                sortAscending = true
+                            }
+                        }) {
+                            HStack {
+                                Text("Bytes Needed")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                if sortColumn == .bytesNeeded {
+                                    Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
+                                        .font(.caption)
+                                        .foregroundColor(.primary)
+                                }
+                            }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .fontWeight(.semibold)
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -119,14 +180,14 @@ struct ChecksumSizeDistribution: View
                     {
                         VStack(spacing: 0)
                         {
-                            ForEach(bytesNeededBySize.keys.sorted(), id: \.self)
+                            ForEach(sortedData(), id: \.0)
                             {
-                                size in
+                                item in
                                 HStack
                                 {
-                                    Text("\(size)")
+                                    Text("\(item.0)")
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                    Text("\(bytesNeededBySize[size]!)")
+                                    Text("\(item.1)")
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .padding(.horizontal, 8)
