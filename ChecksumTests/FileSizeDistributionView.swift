@@ -144,7 +144,8 @@ struct FileSizeDistributionView: View
     // MARK: - Private Methods
     
     /// Creates size bins for better visualization when there are many unique file sizes
-    private func createSizeBins(from fileSetBySize: FileSetBySize) -> [(size: String, count: Int, sortKey: Int)] {
+    private func createSizeBins(from fileSetBySize: FileSetBySize) -> [(size: String, count: Int, sortKey: Int)]
+    {
         let sizes = fileSetBySize.sortedSizes
         guard let minSize = sizes.min(), let maxSize = sizes.max() else {
             return []

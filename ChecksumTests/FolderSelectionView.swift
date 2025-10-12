@@ -16,6 +16,8 @@ struct FolderSelectionView: View
     @Binding var folderSelected: Bool
     // [in] controls the enablement of the Source button
     @Binding var sourceEnabled: Bool
+    // [inout] fileSetBySize - reset files grouped by size
+    @Binding var fileSetBySize: FileSetBySize
 
     var body: some View
     {
@@ -23,6 +25,8 @@ struct FolderSelectionView: View
         {
             Button("Source")
             {
+                // reset fileSetBySize
+                fileSetBySize.removeAll()
                 // create file open dialog to select a folder
                 let panel = NSOpenPanel()
                 panel.canChooseFiles = false
@@ -55,11 +59,13 @@ struct FolderSelectionView: View
     )
     @Previewable @State var folderSelected: Bool = false
     @Previewable @State var sourceEnabled: Bool = true
+    @Previewable @State var fileSetBySize: FileSetBySize = FileSetBySize()
     
     // path specified and enabled
-    FolderSelectionView(sourceURL: $sourceURL,
-                      folderSelected: $folderSelected,
-                      sourceEnabled: $sourceEnabled)
+    FolderSelectionView( sourceURL: $sourceURL,
+                         folderSelected: $folderSelected,
+                         sourceEnabled: $sourceEnabled,
+                         fileSetBySize: $fileSetBySize )
     
 }
 
@@ -68,11 +74,13 @@ struct FolderSelectionView: View
     @Previewable @State var sourceURL: URL? = nil
     @Previewable @State var folderSelected: Bool = false
     @Previewable @State var sourceEnabled: Bool = true
+    @Previewable @State var fileSetBySize: FileSetBySize = FileSetBySize()
 
     // (default) no file, enabled
-    FolderSelectionView(sourceURL: $sourceURL,
-                      folderSelected: $folderSelected,
-                      sourceEnabled: $sourceEnabled)
+    FolderSelectionView( sourceURL: $sourceURL,
+                         folderSelected: $folderSelected,
+                         sourceEnabled: $sourceEnabled,
+                         fileSetBySize: $fileSetBySize )
 }
 
 #Preview("Disabled")
@@ -81,10 +89,12 @@ struct FolderSelectionView: View
     @Previewable @State var folderSelected: Bool = false
     // disabled selection
     @Previewable @State var sourceEnabled: Bool = false
+    @Previewable @State var fileSetBySize: FileSetBySize = FileSetBySize()
 
     // no file, disabled
-    FolderSelectionView(sourceURL: $sourceURL,
-                      folderSelected: $folderSelected,
-                      sourceEnabled: $sourceEnabled)
+    FolderSelectionView( sourceURL: $sourceURL,
+                         folderSelected: $folderSelected,
+                         sourceEnabled: $sourceEnabled,
+                         fileSetBySize: $fileSetBySize )
 }
 

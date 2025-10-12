@@ -15,6 +15,8 @@ struct ContentView: View
     @State var fileSetBySize = FileSetBySize()
     @State var updateDistribution: Bool = false
     @State var processEnabled: Bool = false
+    @State var currentLevel: Int = 0
+    @State var maxLevel: Int = 0
 
     var body: some View
     {
@@ -24,7 +26,8 @@ struct ContentView: View
             FolderSelectionView(
                 sourceURL: $sourceURL,
                 folderSelected: $folderSelected,
-                sourceEnabled: $sourceEnabled
+                sourceEnabled: $sourceEnabled,
+                fileSetBySize: $fileSetBySize
             )
 
             // folder stats
@@ -36,18 +39,17 @@ struct ContentView: View
                                       , processEnabled: $processEnabled
             )
 
-            // process button
-            HStack
-            {
-                Button("Process")
-                {
-                    
-                }
-                .disabled( !processEnabled )
-                Spacer()
-            }
+            // ChecksumSizeDistribution
+            ChecksumSizeDistribution( processEnabled: $processEnabled
+                                      , fileSetBySize: $fileSetBySize
+                                      , currentLevel: $currentLevel
+                                      , maxLevel: $maxLevel )
+
             // progress bar
-            Text("TBD progress bar")
+            ProgressBarView( currentLevel: $currentLevel,
+                             maxLevel: $maxLevel )
+
+
             // results
             Text("TBD results")
         }

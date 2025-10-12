@@ -45,26 +45,26 @@ class FolderAnalyzer
                     for case let fileURL as URL in enumerator
                     {
                         let resourceValues = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey, .contentTypeKey])
-                        
+
                         // Only process regular files (not directories)
                         guard let isRegularFile = resourceValues.isRegularFile, isRegularFile else {
                             continue
                         }
-                        
+
                         // Check if file is a media file (audio, video, or image)
                         if let contentType = resourceValues.contentType
                         {
                             let isMediaFile = contentType.conforms(to: .audio) ||
                                               contentType.conforms(to: .video) ||
                                               contentType.conforms(to: .image)
-                            
+
                             if isMediaFile, let fileSize = resourceValues.fileSize
                             {
                                 count += 1
                                 size += Int64(fileSize)
                                 // print("Analyzing: \(fileURL.path()) - \(fileSize) bytes,   count = \(count),  size = \(size)")
                                 // Create MediaFile and add to temporary collection
-                                let mediaFile = MediaFile(fileName: fileURL.path(), fileSize: fileSize)
+                                let mediaFile = MediaFile(fileUrl: fileURL, fileSize: fileSize)
                                 mediaFiles.append(mediaFile)
                             }
                         }
