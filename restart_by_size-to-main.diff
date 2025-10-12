@@ -1,0 +1,1656 @@
+diff --git a/ChecksumTests/BusyOverlayView.swift b/ChecksumTests/BusyOverlayView.swift
+deleted file mode 100644
+index ec489b4..0000000
+--- a/ChecksumTests/BusyOverlayView.swift
++++ /dev/null
+@@ -1,43 +0,0 @@
+-//
+-//  BusyOverlayView.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import SwiftUI
+-
+-struct BusyOverlayView: View {
+-    var body: some View {
+-        ZStack {
+-            Color.black.opacity(0.2)
+-                .ignoresSafeArea()
+-            VStack(spacing: 12) {
+-                ProgressView()
+-                    .progressViewStyle(CircularProgressViewStyle())
+-                Text("Processing...")
+-                    .font(.caption)
+-                    .foregroundColor(.secondary)
+-            }
+-            .padding(16)
+-            .background(
+-                RoundedRectangle(cornerRadius: 12)
+-                    .fill(Color(NSColor.windowBackgroundColor))
+-                    .shadow(radius: 10)
+-            )
+-        }
+-    }
+-}
+-
+-#Preview {
+-    ZStack {
+-        // Background content to show overlay effect
+-        VStack {
+-            Text("Main Content")
+-                .font(.largeTitle)
+-            Text("This is the main app content")
+-        }
+-        
+-        BusyOverlayView()
+-    }
+-}
+diff --git a/ChecksumTests/ContentView.swift b/ChecksumTests/ContentView.swift
+index 1b5ee33..ae29db6 100644
+--- a/ChecksumTests/ContentView.swift
++++ b/ChecksumTests/ContentView.swift
+@@ -6,138 +6,17 @@
+ //
+ 
+ import SwiftUI
+-<<<<<<< HEAD
+-<<<<<<< HEAD
+-import Charts
+-internal import UniformTypeIdentifiers
+-=======
+-// internal import UniformTypeIdentifiers
+->>>>>>> b28dda3 (added more efficiency (with help from Cursor) to the map of files by sizes.)
+-=======
+->>>>>>> 6be2f06 (enabled the process button based on completion of the collecting of files.)
+ 
+ struct ContentView: View
+ {
+     @State var sourceURL: URL?
+     @State var folderSelected: Bool = false
+     @State var sourceEnabled: Bool = true
+-<<<<<<< HEAD
+-<<<<<<< HEAD
+-    @State var processEnabled: Bool = false
+-    @State var tester: Tester?
+-    @State var thresholds: [Int] = [
+-        512,
+-        8192,
+-        1048576,
+-        268435456,
+-        17179869184
+-    ]
+-    @State var statusText: String = "Select a source directory"
+-    @State var totalFiles: Double = 0.0
+-    @State var progress: Double = 0.0
+-    @State var fileCountByType: [String: Int] = [:]
+-    // best results
+-    @State var bestResults : ResultSet = ResultSet()
+-    // last results
+-    @State var lastResults : ResultSet = ResultSet()
+-    @State var isProcessing: Bool = false
+-    @State var flushCachesBeforeProcessing: Bool = true
+-
+-    var body: some View {
+-        ZStack {
+-            VStack {
+-                // Folder picker
+-                FolderPickerView(
+-                    sourceURL: $sourceURL,
+-                    sourceEnabled: $sourceEnabled,
+-                    processEnabled: $processEnabled,
+-                    statusText: $statusText,
+-                    totalFiles: $totalFiles,
+-                    fileCountByType: $fileCountByType,
+-                    onFolderSelected: { newTester in
+-                        tester = newTester
+-                    }
+-                )
+-                
+-                // Folder stats
+-                FolderStatsView(
+-                    totalFiles: Int(totalFiles),
+-                    fileCountByType: fileCountByType
+-                )
+-                
+-                // Threshold selector
+-                ThresholdSelectorView(thresholds: $thresholds)
+-                
+-                // File size distribution chart
+-                FileSizeChart(thresholds: thresholds, tester: tester)
+-                
+-                // Process button and cache flush option
+-                VStack(spacing: 8) {
+-                    ProcessControlView(
+-                        processEnabled: $processEnabled,
+-                        onProcess: handleProcess
+-                    )
+-                    
+-                    Toggle("Flush disk caches before processing (requires admin)", isOn: $flushCachesBeforeProcessing)
+-                        .font(.caption)
+-                        .toggleStyle(.checkbox)
+-                }
+-                
+-                // Progress bar
+-                ProgressBarView(progress: progress)
+-
+-                // Reset Best Button
+-                HStack {
+-                    Button("Reset Best")
+-                    {
+-                        self.bestResults = ResultSet()
+-                    }
+-                    Spacer()
+-                }
+-
+-                // Results charts
+-                ResultsChartsView(
+-                    bestResults: self.bestResults,
+-                    lastResults: self.lastResults
+-                )
+-                
+-                // Spacers
+-                Spacer()
+-                Spacer()
+-                
+-                // Status text
+-                Text(statusText)
+-                    .frame(maxWidth: .infinity, alignment: .leading)
+-            }
+-            .padding()
+-            
+-            // Busy overlay
+-            if isProcessing {
+-                BusyOverlayView()
+-            }
+-=======
+-=======
+     @State var fileSetBySize = FileSetBySize()
+     @State var updateDistribution: Bool = false
+-<<<<<<< HEAD
+-
+->>>>>>> b28dda3 (added more efficiency (with help from Cursor) to the map of files by sizes.)
+-//    let numberOfChecksumSizes: Int = 6
+-//    @State var thresholds: [Double] = [
+-//        512,
+-//        8192,
+-//        1048576,
+-//        268435456,
+-//        17179869184
+-//    ]
+-=======
+     @State var processEnabled: Bool = false
+-<<<<<<< HEAD
+->>>>>>> 6be2f06 (enabled the process button based on completion of the collecting of files.)
+-=======
+     @State var currentLevel: Int = 0
+     @State var maxLevel: Int = 0
+->>>>>>> 3db1918 (adding ChecksumSizeDistribution and ProgressBar views)
+ 
+     var body: some View
+     {
+@@ -160,141 +39,6 @@ struct ContentView: View
+                                       , processEnabled: $processEnabled
+             )
+ 
+-<<<<<<< HEAD
+-<<<<<<< HEAD
+-//            // checksum sizes
+-//            MultiThumbSlider(
+-//                values: $thresholds,
+-//                bounds: 512...17179869184, // 512 bytes to 16 GB
+-//                minSeparation: 64,         // Smaller separation for log scale
+-//                step: nil                  // No stepping for smooth log scale
+-//            )
+-//            Text(thresholds.map { MultiThumbSlider.formatBytes($0) }.joined(separator: ", "))
+-//                .monospaced()
+-//                .font(.caption)
+-//
+-//            // process button
+-//            HStack
+-//            {
+-//                Button("Process")
+-//                {
+-//                    
+-//                }
+-//                .disabled( !processEnabled )
+-//                Spacer()
+-//            }
+-//            // progress bar
+-//            Text("TBD progress bar")
+-//            // results
+-//            Text("TBD results")
+->>>>>>> dcfde55 (Starting with a branch from an early version, removed the Tester class and adding the FolderSelector)
+-        }
+-    }
+-    
+-    /// Flush disk caches using the purge command (requires admin privileges)
+-    private func flushDiskCaches(completion: @escaping (Bool) -> Void) {
+-        let script = """
+-        do shell script "purge" with administrator privileges
+-        """
+-        
+-        let process = Process()
+-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+-        process.arguments = ["-e", script]
+-        
+-        let pipe = Pipe()
+-        process.standardOutput = pipe
+-        process.standardError = pipe
+-        
+-        do {
+-            try process.run()
+-            process.waitUntilExit()
+-            
+-            let success = process.terminationStatus == 0
+-            if success {
+-                print("Disk caches flushed successfully")
+-            } else {
+-                print("Failed to flush disk caches (status: \(process.terminationStatus))")
+-            }
+-            completion(success)
+-        } catch {
+-            print("Error running purge command: \(error.localizedDescription)")
+-            completion(false)
+-        }
+-    }
+-    
+-    private func handleProcess() {
+-        guard let tester = tester else { return }
+-        
+-        // Save last result to best if it's better
+-        if !self.lastResults.isEmpty &&
+-            (self.bestResults.isEmpty || self.lastResults.totalTime < self.bestResults.totalTime) {
+-            statusText = "Copying last to best."
+-            self.bestResults = self.lastResults
+-        }
+-        
+-        // Enter busy state
+-        isProcessing = true
+-        sourceEnabled = false
+-        processEnabled = false
+-        
+-        // Flush caches if requested, then start processing
+-        if flushCachesBeforeProcessing {
+-            statusText = "Flushing disk caches..."
+-            DispatchQueue.global(qos: .userInitiated).async {
+-                self.flushDiskCaches { success in
+-                    if success {
+-                        DispatchQueue.main.async {
+-                            self.statusText = "Disk caches flushed. Starting processing..."
+-                        }
+-                        // Wait a moment for the system to settle
+-                        Thread.sleep(forTimeInterval: 1.0)
+-                    } else {
+-                        DispatchQueue.main.async {
+-                            self.statusText = "Failed to flush caches. Continuing anyway..."
+-                        }
+-                        Thread.sleep(forTimeInterval: 1.0)
+-                    }
+-                    self.startProcessing(tester: tester)
+-                }
+-            }
+-        } else {
+-            statusText = "Processing files..."
+-            DispatchQueue.global(qos: .userInitiated).async {
+-                self.startProcessing(tester: tester)
+-            }
+-        }
+-    }
+-    
+-    private func startProcessing(tester: Tester) {
+-        let results: ResultSet = tester.process(
+-            thresholds: thresholds
+-        ) { progressValue, statusMessage in
+-            // Update UI on the main thread
+-            DispatchQueue.main.async {
+-                self.progress = progressValue
+-                self.statusText = statusMessage
+-            }
+-        }
+-        
+-        DispatchQueue.main.async {
+-            // Update UI after processing completes
+-            self.lastResults = results
+-            self.statusText = "Processing complete. Found \(Int(totalFiles)) files."
+-            self.isProcessing = false
+-            self.sourceEnabled = true
+-            self.processEnabled = true
+-=======
+-            // process button
+-            HStack
+-            {
+-                Button("Process")
+-                {
+-                    
+-                }
+-                .disabled( !processEnabled )
+-                Spacer()
+-            }
+-=======
+             // ChecksumSizeDistribution
+             ChecksumSizeDistribution( sourceURL: sourceURL
+                                       , processEnabled: $processEnabled
+@@ -302,7 +46,6 @@ struct ContentView: View
+                                       , currentLevel: $currentLevel
+                                       , maxLevel: $maxLevel )
+ 
+->>>>>>> 3db1918 (adding ChecksumSizeDistribution and ProgressBar views)
+             // progress bar
+             ProgressBarView( currentLevel: $currentLevel,
+                              maxLevel: $maxLevel )
+@@ -310,8 +53,9 @@ struct ContentView: View
+ 
+             // results
+             Text("TBD results")
+->>>>>>> 6be2f06 (enabled the process button based on completion of the collecting of files.)
+         }
++        .padding( )
++        Spacer()
+     }
+ }
+ 
+diff --git a/ChecksumTests/FileSizeChart.swift b/ChecksumTests/FileSizeChart.swift
+deleted file mode 100644
+index f25d81b..0000000
+--- a/ChecksumTests/FileSizeChart.swift
++++ /dev/null
+@@ -1,107 +0,0 @@
+-//
+-//  FileSizeChart.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import SwiftUI
+-import Charts
+-
+-struct FileSizeChartDataPoint: Identifiable {
+-    let id = UUID()
+-    let threshold: Int
+-    let fileCount: Int
+-    let thresholdFormatted: String
+-}
+-
+-struct FileSizeChart: View {
+-    let thresholds: [Int]
+-    let tester: Tester?
+-    
+-    private var chartData: [FileSizeChartDataPoint] {
+-        guard let tester = tester else { return [] }
+-        
+-        // For each threshold, count files with size <= threshold
+-        return thresholds.map { threshold in
+-            let count = tester.countFilesAtOrBelowThreshold(threshold)
+-            return FileSizeChartDataPoint(
+-                threshold: threshold,
+-                fileCount: count,
+-                thresholdFormatted: MultiThumbSlider.formatBytes(Double(threshold))
+-            )
+-        }
+-    }
+-    
+-    var body: some View {
+-        VStack(alignment: .leading) {
+-            Text("File Size Distribution")
+-                .font(.headline)
+-                .padding(.bottom, 4)
+-            
+-            if tester != nil && !chartData.isEmpty {
+-                Text("Shows cumulative count of files ≤ each threshold")
+-                    .font(.caption)
+-                    .foregroundColor(.secondary)
+-                    .padding(.bottom, 8)
+-                
+-                Chart {
+-                    ForEach(chartData) { dataPoint in
+-                        LineMark(
+-                            x: .value("Threshold", log10(Double(dataPoint.threshold))),
+-                            y: .value("File Count", dataPoint.fileCount)
+-                        )
+-                        .interpolationMethod(.catmullRom)
+-                        
+-                        PointMark(
+-                            x: .value("Threshold", log10(Double(dataPoint.threshold))),
+-                            y: .value("File Count", dataPoint.fileCount)
+-                        )
+-                        .annotation(position: .top) {
+-                            Text("\(dataPoint.fileCount)")
+-                                .font(.caption2)
+-                                .foregroundColor(.secondary)
+-                        }
+-                    }
+-                }
+-                .chartXAxis {
+-                    AxisMarks { value in
+-                        if let logValue = value.as(Double.self) {
+-                            let actualValue = pow(10, logValue)
+-                            AxisValueLabel {
+-                                Text(MultiThumbSlider.formatBytes(actualValue))
+-                                    .font(.caption2)
+-                            }
+-                            AxisGridLine()
+-                            AxisTick()
+-                        }
+-                    }
+-                }
+-                .chartYAxis {
+-                    AxisMarks(position: .leading) { value in
+-                        AxisValueLabel()
+-                        AxisGridLine()
+-                        AxisTick()
+-                    }
+-                }
+-                .frame(minWidth: 200, maxWidth: .infinity, minHeight: 200, maxHeight: 200)
+-            } else {
+-                Text("Select a folder to see file size distribution")
+-                    .font(.caption)
+-                    .foregroundColor(.secondary)
+-                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 200, alignment: .center)
+-            }
+-        }
+-        .frame(maxWidth: .infinity, alignment: .leading)
+-        .padding()
+-        .background(Color.gray.opacity(0.1))
+-        .cornerRadius(8)
+-    }
+-}
+-
+-#Preview {
+-    FileSizeChart(
+-        thresholds: [512, 8192, 1048576, 268435456, 17179869184],
+-        tester: nil
+-    )
+-}
+diff --git a/ChecksumTests/FolderPickerView.swift b/ChecksumTests/FolderPickerView.swift
+deleted file mode 100644
+index 15c8f84..0000000
+--- a/ChecksumTests/FolderPickerView.swift
++++ /dev/null
+@@ -1,70 +0,0 @@
+-//
+-//  FolderPickerView.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import SwiftUI
+-
+-struct FolderPickerView: View {
+-    @Binding var sourceURL: URL?
+-    @Binding var sourceEnabled: Bool
+-    @Binding var processEnabled: Bool
+-    @Binding var statusText: String
+-    @Binding var totalFiles: Double
+-    @Binding var fileCountByType: [String: Int]
+-    var onFolderSelected: ((Tester) -> Void)?
+-    
+-    var body: some View {
+-        HStack {
+-            Button("Source") {
+-                // create file open dialog to select a folder
+-                let panel = NSOpenPanel()
+-                panel.canChooseFiles = false
+-                panel.canChooseDirectories = true
+-                panel.allowsMultipleSelection = false
+-                panel.canCreateDirectories = false
+-                panel.message = "Select test directory containing media files"
+-                if panel.runModal() == .OK, let url = panel.url {
+-                    sourceURL = url
+-                    // Initialize Tester with the selected URL
+-                    let tester = Tester(sourceURL: url)
+-                    processEnabled = true
+-                    statusText = "Source directory selected. Click Process to analyze files."
+-                    // Update UI with results
+-                    totalFiles = tester.getFileCount()
+-                    fileCountByType = tester.getFileCountByType()
+-                    onFolderSelected?(tester)
+-                }
+-            }
+-            .disabled(!sourceEnabled)
+-            Text(sourceURL?.absoluteString ?? "Select Source Folder")
+-                .frame(maxWidth: .infinity, alignment: .leading)
+-        }
+-    }
+-}
+-
+-#Preview {
+-    FolderPickerView(
+-        sourceURL: .constant(nil),
+-        sourceEnabled: .constant(true),
+-        processEnabled: .constant(false),
+-        statusText: .constant("Select a source directory"),
+-        totalFiles: .constant(0.0),
+-        fileCountByType: .constant([:]),
+-        onFolderSelected: nil
+-    )
+-}
+-
+-#Preview("With URL") {
+-    FolderPickerView(
+-        sourceURL: .constant(URL(string: "file:///Users/test/Documents")),
+-        sourceEnabled: .constant(false),
+-        processEnabled: .constant(true),
+-        statusText: .constant("Source directory selected"),
+-        totalFiles: .constant(100.0),
+-        fileCountByType: .constant(["photo": 50, "video": 30]),
+-        onFolderSelected: nil
+-    )
+-}
+diff --git a/ChecksumTests/FolderStatsView.swift b/ChecksumTests/FolderStatsView.swift
+index 92c30fd..dfc55e6 100644
+--- a/ChecksumTests/FolderStatsView.swift
++++ b/ChecksumTests/FolderStatsView.swift
+@@ -2,62 +2,11 @@
+ //  FolderStatsView.swift
+ //  ChecksumTests
+ //
+-<<<<<<< HEAD
+-//  Created by Harold Tomlinson on 2025-10-08.
+-=======
+ //  Created by Harold Tomlinson on 2025-10-11.
+->>>>>>> aad876f (Cursor added Analyzer)
+ //
+ 
+ import SwiftUI
+ 
+-<<<<<<< HEAD
+-struct FolderStatsView: View {
+-    let totalFiles: Int
+-    let fileCountByType: [String: Int]
+-    
+-    var body: some View {
+-        HStack(spacing: 24) {
+-            Text("Total Files: \(totalFiles)")
+-                .font(.headline)
+-            
+-            if !fileCountByType.isEmpty {
+-                ForEach(["photo", "audio", "video", "other"], id: \.self) { fileType in
+-                    if let count = fileCountByType[fileType], count > 0 {
+-                        HStack {
+-                            Text("\(fileType.capitalized):")
+-                                .font(.caption)
+-                            Text("\(count)")
+-                                .font(.caption)
+-                                .monospaced()
+-                        }
+-                    }
+-                }
+-            }
+-        }
+-        .frame(maxWidth: .infinity, alignment: .leading)
+-    }
+-}
+-
+-#Preview {
+-    FolderStatsView(
+-        totalFiles: 0,
+-        fileCountByType: [:]
+-    )
+-}
+-
+-#Preview("With Files") {
+-    FolderStatsView(
+-        totalFiles: 150,
+-        fileCountByType: [
+-            "photo": 80,
+-            "audio": 20,
+-            "video": 45,
+-            "other": 5
+-        ]
+-    )
+-    .padding()
+-=======
+ struct FolderStatsView: View
+ {
+     // [in] URL to be set when the user selects a path
+@@ -165,20 +114,10 @@ struct FolderStatsView: View
+ {
+     @Previewable @State var sourceURL: URL? = URL(filePath: "~/Downloads")
+     @Previewable @State var fileSetBySize = FileSetBySize()
+-<<<<<<< HEAD
+-    
+-<<<<<<< HEAD
+-    FolderStatsView( sourceURL: sourceURL )
+->>>>>>> aad876f (Cursor added Analyzer)
+-=======
+-    FolderStatsView(sourceURL: sourceURL, fileSetBySize: $fileSetBySize)
+->>>>>>> b28dda3 (added more efficiency (with help from Cursor) to the map of files by sizes.)
+-=======
+     @Previewable @State var updateDistribution = false
+ 
+     FolderStatsView(sourceURL: sourceURL
+                     , updateDistribution: $updateDistribution
+                     , fileSetBySize: $fileSetBySize
+     )
+->>>>>>> cd98c91 (showing the distribution of sizes in 20 buckets using a logarithmic scale but seeing clusters of sizes that are narrow.)
+ }
+diff --git a/ChecksumTests/ProcessControlView.swift b/ChecksumTests/ProcessControlView.swift
+deleted file mode 100644
+index ff57a1a..0000000
+--- a/ChecksumTests/ProcessControlView.swift
++++ /dev/null
+@@ -1,39 +0,0 @@
+-//
+-//  ProcessControlView.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import SwiftUI
+-
+-struct ProcessControlView: View {
+-    @Binding var processEnabled: Bool
+-    var onProcess: () -> Void
+-    
+-    var body: some View {
+-        HStack {
+-            Button(action: onProcess) {
+-                Text("Process")
+-            }
+-            .disabled(!processEnabled)
+-            Spacer()
+-        }
+-    }
+-}
+-
+-#Preview {
+-    ProcessControlView(
+-        processEnabled: .constant(true),
+-        onProcess: { print("Process button tapped") }
+-    )
+-    .padding()
+-}
+-
+-#Preview("Disabled") {
+-    ProcessControlView(
+-        processEnabled: .constant(false),
+-        onProcess: { print("Process button tapped") }
+-    )
+-    .padding()
+-}
+diff --git a/ChecksumTests/ProgressBarView.swift b/ChecksumTests/ProgressBarView.swift
+index 2b45ec6..1c09000 100644
+--- a/ChecksumTests/ProgressBarView.swift
++++ b/ChecksumTests/ProgressBarView.swift
+@@ -2,37 +2,11 @@
+ //  ProgressBarView.swift
+ //  ChecksumTests
+ //
+-<<<<<<< HEAD
+-//  Created by Harold Tomlinson on 2025-10-08.
+-=======
+ //  Created by Harold Tomlinson on 2025-10-11.
+->>>>>>> 3db1918 (adding ChecksumSizeDistribution and ProgressBar views)
+ //
+ 
+ import SwiftUI
+ 
+-<<<<<<< HEAD
+-struct ProgressBarView: View {
+-    let progress: Double
+-    
+-    var body: some View {
+-        ProgressView(value: progress, total: 100.0)
+-            .frame(maxWidth: .infinity, alignment: .leading)
+-            .padding()
+-    }
+-}
+-
+-#Preview {
+-    ProgressBarView(progress: 0.0)
+-}
+-
+-#Preview("Partial Progress") {
+-    ProgressBarView(progress: 45.0)
+-}
+-
+-#Preview("Complete") {
+-    ProgressBarView(progress: 100.0)
+-=======
+ struct ProgressBarView: View
+ {
+     @Binding var currentLevel: Int
+@@ -74,5 +48,4 @@ struct ProgressBarView: View
+ 
+     ProgressBarView( currentLevel: $currentLevel,
+                      maxLevel: $maxLevel )
+->>>>>>> 3db1918 (adding ChecksumSizeDistribution and ProgressBar views)
+ }
+diff --git a/ChecksumTests/ResultsChartsView.swift b/ChecksumTests/ResultsChartsView.swift
+deleted file mode 100644
+index 85059dd..0000000
+--- a/ChecksumTests/ResultsChartsView.swift
++++ /dev/null
+@@ -1,135 +0,0 @@
+-//
+-//  ResultsChartsView.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import SwiftUI
+-import Charts
+-
+-struct ResultsChartsView: View
+-{
+-    let bestResults: ResultSet
+-    let lastResults: ResultSet
+-    
+-    var body: some View
+-    {
+-        if !lastResults.isEmpty || !bestResults.isEmpty
+-        {
+-            VStack {
+-                Text("Sum Times Distribution")
+-                    .font(.headline)
+-                    .padding(.bottom, 4)
+-                
+-                // Times Chart
+-                Chart {
+-                    // Plot bestResults times
+-                    ForEach(Array(bestResults.results.enumerated()), id: \.offset) { index, result in
+-                        LineMark(
+-                            x: .value("Threshold", result.getSize()),
+-                            y: .value("Time", result.getTime()),
+-                            series: .value("Series", "Best")
+-                        )
+-                        .foregroundStyle(.red)
+-                        .lineStyle(StrokeStyle(lineWidth: 2))
+-                        .interpolationMethod(.catmullRom)
+-                        .symbol {
+-                            Image(systemName: "diamond.fill")
+-                                .foregroundColor(.red)
+-                        }
+-                    }
+-                    
+-                    // Plot lastResults times
+-                    ForEach(Array(lastResults.results.enumerated()), id: \.offset) { index, result in
+-                        LineMark(
+-                            x: .value("Threshold", result.getSize()),
+-                            y: .value("Time", result.getTime()),
+-                            series: .value("Series", "Last")
+-                        )
+-                        .foregroundStyle(.blue)
+-                        .lineStyle(StrokeStyle(lineWidth: 2))
+-                        .interpolationMethod(.catmullRom)
+-                        .symbol {
+-                            Image(systemName: "circle.fill")
+-                                .foregroundColor(.blue)
+-                        }
+-                    }
+-                }
+-                .frame(height: 200)
+-                .chartXAxis {
+-                    AxisMarks(values: .automatic) { value in
+-                        AxisGridLine()
+-                        AxisValueLabel {
+-                            if let intValue = value.as(Int.self), intValue > 0 {
+-                                Text(MultiThumbSlider.formatBytes(Double(intValue)))
+-                                    .font(.caption)
+-                            }
+-                        }
+-                    }
+-                }
+-                .chartXScale(type: .log)
+-                .chartYAxis {
+-                    AxisMarks(values: .automatic) { value in
+-                        AxisGridLine()
+-                        AxisValueLabel {
+-                            if let doubleValue = value.as(Double.self) {
+-                                Text(String(format: "%.3f", doubleValue))
+-                                    .font(.caption)
+-                            }
+-                        }
+-                    }
+-                }
+-                .padding()
+-            } // VStack
+-        } // lastResults.isEmpty
+-        else
+-        {
+-            Text("No results yet - click Process to analyze files")
+-                .foregroundColor(.secondary)
+-                .padding()
+-        } // lastResults.isEmpty
+-    } // body
+-}
+-
+-#Preview {
+-    ResultsChartsView(
+-        bestResults: ResultSet(),
+-        lastResults: ResultSet()
+-    )
+-    .frame(height: 500)
+-}
+-
+-#Preview("With Data") {
+-    // Create sample data for preview
+-    let sampleBest: ResultSet = {
+-        var resultSet = ResultSet()
+-        resultSet.results = [
+-            Result(size: 512, count: 100, time: 0.5),
+-            Result(size: 8192, count: 95, time: 0.8),
+-            Result(size: 1048576, count: 80, time: 1.2),
+-            Result(size: 268435456, count: 50, time: 2.5)
+-        ]
+-        resultSet.totalTime = 4.0
+-        return resultSet
+-    }()
+-    
+-    let sampleLast: ResultSet = {
+-        var resultSet = ResultSet()
+-        resultSet.results = [
+-            Result(size: 512, count: 100, time: 0.6),
+-            Result(size: 8192, count: 95, time: 0.9),
+-            Result(size: 1048576, count: 80, time: 1.4),
+-            Result(size: 268435456, count: 50, time: 2.8)
+-        ]
+-        resultSet.totalTime = 4.7
+-        return resultSet
+-    }()
+-    
+-    ResultsChartsView(
+-        bestResults: sampleBest,
+-        lastResults: sampleLast
+-    )
+-    .frame(height: 500)
+-    .padding()
+-}
+diff --git a/ChecksumTests/Tester/File.swift b/ChecksumTests/Tester/File.swift
+deleted file mode 100644
+index e42a99b..0000000
+--- a/ChecksumTests/Tester/File.swift
++++ /dev/null
+@@ -1,161 +0,0 @@
+-//
+-//  File.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-04.
+-//
+-
+-import Foundation
+-import AppKit
+-import CryptoKit
+-
+-class File
+-{
+-    /**
+-     * The File class represents a file object which contains the file name, creation date,
+-     * modification date, file type, size, and checksums
+-     *
+-     * - Parameter fileName: The name of the file
+-     * - Parameter creationDate: The creation date of the file
+-     * - Parameter modificationDate: The modification date of the file
+-     * - Parameter fileType: The type of the file
+-     * - Parameter size: The size of the file
+-     */
+-    private var fileName: String
+-    private var fileExtension: String
+-    private var fileType: FileType = .other
+-    private var m_size: Int
+-    
+-    private var creationDate: Date
+-    private var modificationDate: Date
+-    private var dateSinceEpochMod: Double
+-    private var checksums: [ Int: String ] = [:]
+-    private var checksumsCompleted : Bool = false
+-
+-    init( url: URL ) throws
+-    {
+-        self.fileName = url.path
+-        self.fileExtension = url.pathExtension.lowercased()
+-        
+-        let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+-        guard let size = attributes[.size] as? Int else {
+-            throw FileError.invalidFileSize
+-        }
+-        self.m_size = size
+-        
+-        
+-        self.fileType = FileType.other
+-        for fileType in FileType.allCases where fileType != .other
+-        {
+-            if fileType.fileExtensions.contains(fileExtension)
+-            {
+-                self.fileType = fileType
+-                break
+-            }
+-        }
+-        
+-        self.creationDate = attributes[.creationDate] as! Date
+-        self.modificationDate = attributes[.modificationDate] as! Date
+-        // using the earlier of the creation and modification dates, save the date as seconds since the epoch / seconds in 1 month
+-        self.dateSinceEpochMod = min(creationDate.timeIntervalSince1970.rounded(.down),
+-                                     modificationDate.timeIntervalSince1970.rounded(.down)).rounded(.down) / 2_629_746
+-        self.checksums = [:]
+-        self.checksumsCompleted = false
+-    } // init
+-    
+-    
+-    public func key() -> Double
+-    {
+-        return dateSinceEpochMod
+-    }
+-    
+-    public func type() -> String
+-    {
+-        return fileType.rawValue
+-    }
+-    
+-    // File type categories
+-    public enum FileType: String, CaseIterable
+-    {
+-        case photo = "photo"
+-        case audio = "audio"
+-        case video = "video"
+-        case other = "other"
+-        
+-        var fileExtensions: [String] {
+-            switch self {
+-            case .photo:
+-                return ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif",
+-                        "heic", "heif", "webp", "raw", "cr2", "nef", "arw",
+-                        "rw2"]
+-            case .audio:
+-                return ["mp3", "wav", "aac", "flac", "ogg", "m4a", "wma", "aiff", "au"]
+-            case .video:
+-                return ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv",
+-                        "m4v", "3gp", "ogv", "dng", "braw"]
+-            case .other:
+-                return []
+-            }
+-        }
+-    }
+-
+-    /**
+-     * return true if checksum is performed.
+-     */
+-    public func checksum( size: Int ) -> Bool
+-    {
+-        // return false if no further checksums are needed.
+-        guard self.checksumsCompleted == false else { return false }
+-        // read 'size' bytes of the file and compute a checksum
+-        guard let file : FileHandle = FileHandle(forReadingAtPath: fileName) else {
+-            print( "checksum:  failed to get file handle.  fileName = \(fileName)")
+-            return false
+-        }
+-        // print( "checksum:  size = \(size),  file size = \(self.size)")
+-        file.seek(toFileOffset: 0)
+-        let data : Data = file.readData(ofLength: size)
+-        // compute checksum using SHA256
+-        let hash = SHA256.hash(data: data)
+-        let checksum = hash.compactMap { String(format: "%02x", $0) }.joined()
+-        self.checksums[size] = checksum
+-        // mark the checksums as completed if the checksum size exceeds the file size
+-        self.checksumsCompleted = ( size > self.m_size )
+-        file.closeFile()
+-        return true
+-    }
+-    
+-    public func name() -> String
+-    {
+-        return self.fileName
+-    }
+-
+-    public func size() -> Int
+-    {
+-        return self.m_size
+-    }
+-    
+-}
+-
+-enum FileError: Error, LocalizedError
+-{
+-    case invalidFileSize
+-    case invalidCreationDate
+-    case invalidModificationDate
+-    case fileNotFound
+-    case permissionDenied
+-    
+-    var errorDescription: String? {
+-        switch self {
+-        case .invalidFileSize:
+-            return "Invalid file size"
+-        case .invalidCreationDate:
+-            return "Invalid creation date"
+-        case .invalidModificationDate:
+-            return "Invalid modification date"
+-        case .fileNotFound:
+-            return "File not found"
+-        case .permissionDenied:
+-            return "Permission denied"
+-        }
+-    }
+-}
+diff --git a/ChecksumTests/Tester/Result.swift b/ChecksumTests/Tester/Result.swift
+deleted file mode 100644
+index 7dc849f..0000000
+--- a/ChecksumTests/Tester/Result.swift
++++ /dev/null
+@@ -1,44 +0,0 @@
+-//
+-//  Result.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-07.
+-//
+-
+-/**
+- * result data
+- * - size:  size of checksum data
+- * - count:  number of files smaller than this size
+- * - time:  average time per file
+- */
+-
+-class Result
+-{
+-    private var size: Int = 0
+-    private var count: Int = 0
+-    private var time: Double = 0.0
+-
+-    init(size: Int, count: Int, time: Double)
+-    {
+-        self.size = size
+-        self.count = count
+-        self.time = time
+-    }
+-
+-    func getSizeFormatted() -> String
+-    {
+-        MultiThumbSlider.formatBytes( Double(size) )
+-    }
+-
+-    func getSize() -> Int {
+-        return size
+-    }
+-    
+-    func getTime() -> Double {
+-        return time
+-    }
+-    
+-    func getCount() -> Int {
+-        return count
+-    }
+-}
+diff --git a/ChecksumTests/Tester/ResultSet.swift b/ChecksumTests/Tester/ResultSet.swift
+deleted file mode 100644
+index 5df9d74..0000000
+--- a/ChecksumTests/Tester/ResultSet.swift
++++ /dev/null
+@@ -1,37 +0,0 @@
+-//
+-//  ResultSet.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-07.
+-//
+-
+-/**
+- * set of results
+- * total time
+- * file count
+- *
+- */
+-
+-struct ResultSet
+-{
+-
+-    var results: [Result]
+-    var totalTime: Double
+-    var fileCount: Int
+-
+-    init()
+-    {
+-        results = []
+-        totalTime = 0.0
+-        fileCount = 0
+-    }
+-    
+-    var isEmpty: Bool {
+-        return results.isEmpty
+-    }
+-    
+-    func sorted(by areInIncreasingOrder: (Result, Result) -> Bool) -> [Result] {
+-        return results.sorted(by: areInIncreasingOrder)
+-    }
+-    
+-}
+diff --git a/ChecksumTests/ThresholdSelectorView.swift b/ChecksumTests/ThresholdSelectorView.swift
+deleted file mode 100644
+index f8bdaed..0000000
+--- a/ChecksumTests/ThresholdSelectorView.swift
++++ /dev/null
+@@ -1,41 +0,0 @@
+-//
+-//  ThresholdSelectorView.swift
+-//  ChecksumTests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import SwiftUI
+-
+-struct ThresholdSelectorView: View {
+-    @Binding var thresholds: [Int]
+-    
+-    var body: some View {
+-        VStack {
+-            MultiThumbSlider(
+-                values: $thresholds,
+-                bounds: 512...17179869184, // 512 bytes to 16 GB
+-                minSeparation: 256,        // Smaller separation for log scale
+-                step: nil                  // No stepping for smooth log scale
+-            )
+-            Text(
+-                thresholds.map { MultiThumbSlider.formatBytes(Double($0))
+-                }.joined(separator: ", "))
+-                .monospaced()
+-                .font(.caption)
+-        }
+-    }
+-}
+-
+-#Preview {
+-    ThresholdSelectorView(
+-        thresholds: .constant([
+-            512,
+-            8192,
+-            1048576,
+-            268435456,
+-            17179869184
+-        ])
+-    )
+-    .padding()
+-}
+diff --git a/ChecksumTestsUITests/ChecksumTestsUITests.swift b/ChecksumTestsUITests/ChecksumTestsUITests.swift
+index 6a9bf1c..dcba0a2 100644
+--- a/ChecksumTestsUITests/ChecksumTestsUITests.swift
++++ b/ChecksumTestsUITests/ChecksumTestsUITests.swift
+@@ -8,8 +8,6 @@
+ import XCTest
+ 
+ final class ChecksumTestsUITests: XCTestCase {
+-    
+-    var app: XCUIApplication!
+ 
+     override func setUpWithError() throws {
+         // Put setup code here. This method is called before the invocation of each test method in the class.
+@@ -17,130 +15,22 @@ final class ChecksumTestsUITests: XCTestCase {
+         // In UI tests it is usually best to stop immediately when a failure occurs.
+         continueAfterFailure = false
+ 
+-        // In UI tests it's important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+-        app = XCUIApplication()
+-        app.launch()
++        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+     }
+ 
+     override func tearDownWithError() throws {
+         // Put teardown code here. This method is called after the invocation of each test method in the class.
+-        app = nil
+-    }
+-    
+-    // MARK: - Initial State Tests
+-    
+-    @MainActor
+-    func testInitialUIState() throws {
+-        // Test that all main UI elements are present on launch
+-        XCTAssertTrue(app.buttons["Source"].exists, "Source button should exist")
+-        XCTAssertTrue(app.staticTexts["Select Source Folder"].exists, "Select Source Folder text should exist")
+-        XCTAssertTrue(app.staticTexts["Total Files: 0"].exists, "Total Files label should exist with 0 files")
+-        XCTAssertTrue(app.buttons["Process"].exists, "Process button should exist")
+-        XCTAssertTrue(app.staticTexts["Select a source directory"].exists, "Initial status text should exist")
+-    }
+-    
+-    @MainActor
+-    func testSourceButtonInitiallyEnabled() throws {
+-        // Test that Source button is enabled initially
+-        let sourceButton = app.buttons["Source"]
+-        XCTAssertTrue(sourceButton.exists, "Source button should exist")
+-        XCTAssertTrue(sourceButton.isEnabled, "Source button should be enabled initially")
+-    }
+-    
+-    @MainActor
+-    func testProcessButtonInitiallyDisabled() throws {
+-        // Test that Process button is disabled initially
+-        let processButton = app.buttons["Process"]
+-        XCTAssertTrue(processButton.exists, "Process button should exist")
+-        XCTAssertFalse(processButton.isEnabled, "Process button should be disabled initially")
+-    }
+-    
+-    // MARK: - Component Tests
+-    
+-    @MainActor
+-    func testFolderPickerViewElements() throws {
+-        // Test FolderPickerView components
+-        XCTAssertTrue(app.buttons["Source"].exists, "Source button should exist")
+-        
+-        // Verify the button is tappable (enabled)
+-        let sourceButton = app.buttons["Source"]
+-        XCTAssertTrue(sourceButton.isHittable, "Source button should be hittable")
+-    }
+-    
+-    @MainActor
+-    func testFolderStatsViewElements() throws {
+-        // Test FolderStatsView components
+-        XCTAssertTrue(app.staticTexts["Total Files: 0"].exists, "Total Files label should exist")
+-        
+-        // Initially, no file type breakdown should be visible
+-        XCTAssertFalse(app.staticTexts["Photo:"].exists, "Photo label should not exist initially")
+-        XCTAssertFalse(app.staticTexts["Audio:"].exists, "Audio label should not exist initially")
+-        XCTAssertFalse(app.staticTexts["Video:"].exists, "Video label should not exist initially")
+-        XCTAssertFalse(app.staticTexts["Other:"].exists, "Other label should not exist initially")
+-    }
+-    
+-    @MainActor
+-    func testProcessControlViewElements() throws {
+-        // Test ProcessControlView components
+-        let processButton = app.buttons["Process"]
+-        XCTAssertTrue(processButton.exists, "Process button should exist")
+-        XCTAssertFalse(processButton.isEnabled, "Process button should be disabled without source")
+-    }
+-    
+-    @MainActor
+-    func testProgressBarViewExists() throws {
+-        // Test that progress bar is present
+-        // Progress bars in SwiftUI are implemented as progress indicators
+-        let progressIndicators = app.progressIndicators
+-        XCTAssertGreaterThan(progressIndicators.count, 0, "At least one progress indicator should exist")
+     }
+-    
+-    @MainActor
+-    func testResultsChartsViewInitialState() throws {
+-        // Test that the "no results" message is shown initially
+-        XCTAssertTrue(app.staticTexts["No results yet - click Process to analyze files"].exists, 
+-                     "No results message should be shown initially")
+-    }
+-    
+-    @MainActor
+-    func testStatusTextVisible() throws {
+-        // Test that status text is visible
+-        XCTAssertTrue(app.staticTexts["Select a source directory"].exists, 
+-                     "Status text should be visible")
+-    }
+-    
+-    // MARK: - Threshold Selector Tests
+-    
+-    @MainActor
+-    func testThresholdSelectorExists() throws {
+-        // Test that threshold values are displayed
+-        // The threshold selector should show formatted byte values
+-        let staticTexts = app.staticTexts
+-        
+-        // Check if any text contains "KB", "MB", or "GB" which would indicate threshold values
+-        var foundThresholdText = false
+-        for i in 0..<staticTexts.count {
+-            let text = staticTexts.element(boundBy: i).label
+-            if text.contains("KB") || text.contains("MB") || text.contains("GB") {
+-                foundThresholdText = true
+-                break
+-            }
+-        }
+-        
+-        XCTAssertTrue(foundThresholdText, "Threshold values should be displayed")
+-    }
+-    
+-    // MARK: - Overlay Tests
+-    
++
+     @MainActor
+-    func testBusyOverlayNotVisibleInitially() throws {
+-        // Test that busy overlay is not shown initially
+-        XCTAssertFalse(app.staticTexts["Processing..."].exists, 
+-                      "Processing overlay should not be visible initially")
++    func testExample() throws {
++        // UI tests must launch the application that they test.
++        let app = XCUIApplication()
++        app.launch()
++
++        // Use XCTAssert and related functions to verify your tests produce the correct results.
+     }
+-    
+-    // MARK: - Performance Tests
+-    
++
+     @MainActor
+     func testLaunchPerformance() throws {
+         // This measures how long it takes to launch your application.
+@@ -148,30 +38,4 @@ final class ChecksumTestsUITests: XCTestCase {
+             XCUIApplication().launch()
+         }
+     }
+-    
+-    // MARK: - Accessibility Tests
+-    
+-    @MainActor
+-    func testMainButtonsAccessibility() throws {
+-        // Test that main buttons are accessible
+-        let sourceButton = app.buttons["Source"]
+-        XCTAssertTrue(sourceButton.exists, "Source button should be accessible")
+-        
+-        let processButton = app.buttons["Process"]
+-        XCTAssertTrue(processButton.exists, "Process button should be accessible")
+-    }
+-    
+-    @MainActor
+-    func testStaticTextAccessibility() throws {
+-        // Test that important static text is accessible
+-        let texts = [
+-            "Select Source Folder",
+-            "Total Files: 0",
+-            "Select a source directory"
+-        ]
+-        
+-        for text in texts {
+-            XCTAssertTrue(app.staticTexts[text].exists, "\(text) should be accessible")
+-        }
+-    }
+ }
+diff --git a/ChecksumTestsUITests/ComponentUITests.swift b/ChecksumTestsUITests/ComponentUITests.swift
+deleted file mode 100644
+index 2459631..0000000
+--- a/ChecksumTestsUITests/ComponentUITests.swift
++++ /dev/null
+@@ -1,137 +0,0 @@
+-//
+-//  ComponentUITests.swift
+-//  ChecksumTestsUITests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import XCTest
+-
+-final class ComponentUITests: XCTestCase {
+-    
+-    var app: XCUIApplication!
+-    
+-    override func setUpWithError() throws {
+-        continueAfterFailure = false
+-        app = XCUIApplication()
+-        app.launch()
+-    }
+-    
+-    override func tearDownWithError() throws {
+-        app = nil
+-    }
+-    
+-    // MARK: - FolderPickerView Tests
+-    
+-    @MainActor
+-    func testFolderPickerViewButtonExists() throws {
+-        let sourceButton = app.buttons["Source"]
+-        XCTAssertTrue(sourceButton.exists, "Source button from FolderPickerView should exist")
+-    }
+-    
+-    @MainActor
+-    func testFolderPickerViewDisplaysCorrectInitialText() throws {
+-        let selectFolderText = app.staticTexts["Select Source Folder"]
+-        XCTAssertTrue(selectFolderText.exists, "Select Source Folder text should be displayed initially")
+-    }
+-    
+-    // MARK: - FolderStatsView Tests
+-    
+-    @MainActor
+-    func testFolderStatsViewShowsTotalFiles() throws {
+-        let totalFilesLabel = app.staticTexts["Total Files: 0"]
+-        XCTAssertTrue(totalFilesLabel.exists, "Total Files label should be visible")
+-    }
+-    
+-    @MainActor
+-    func testFolderStatsViewFileTypesHiddenWhenEmpty() throws {
+-        // When no files are loaded, file type breakdowns should not be visible
+-        XCTAssertFalse(app.staticTexts["Photo:"].exists, "Photo count should not be visible when no files loaded")
+-        XCTAssertFalse(app.staticTexts["Audio:"].exists, "Audio count should not be visible when no files loaded")
+-        XCTAssertFalse(app.staticTexts["Video:"].exists, "Video count should not be visible when no files loaded")
+-    }
+-    
+-    // MARK: - ProcessControlView Tests
+-    
+-    @MainActor
+-    func testProcessControlViewButtonExists() throws {
+-        let processButton = app.buttons["Process"]
+-        XCTAssertTrue(processButton.exists, "Process button should exist in ProcessControlView")
+-    }
+-    
+-    @MainActor
+-    func testProcessControlViewButtonDisabledInitially() throws {
+-        let processButton = app.buttons["Process"]
+-        XCTAssertFalse(processButton.isEnabled, "Process button should be disabled when no source is selected")
+-    }
+-    
+-    // MARK: - ProgressBarView Tests
+-    
+-    @MainActor
+-    func testProgressBarViewExists() throws {
+-        let progressIndicators = app.progressIndicators
+-        XCTAssertGreaterThan(progressIndicators.count, 0, "Progress bar should be present")
+-    }
+-    
+-    // MARK: - ResultsChartsView Tests
+-    
+-    @MainActor
+-    func testResultsChartsViewShowsEmptyMessage() throws {
+-        let emptyMessage = app.staticTexts["No results yet - click Process to analyze files"]
+-        XCTAssertTrue(emptyMessage.exists, "Empty message should be shown when no results")
+-    }
+-    
+-    // MARK: - ThresholdSelectorView Tests
+-    
+-    @MainActor
+-    func testThresholdSelectorViewDisplaysValues() throws {
+-        // Check that threshold values are displayed in some format
+-        let allText = app.staticTexts.allElementsBoundByIndex.map { $0.label }.joined(separator: " ")
+-        
+-        // Should contain formatted byte values
+-        let hasValidThresholdFormat = allText.contains("KB") || allText.contains("MB") || allText.contains("GB")
+-        XCTAssertTrue(hasValidThresholdFormat, "Threshold selector should display formatted byte values")
+-    }
+-    
+-    // MARK: - BusyOverlayView Tests
+-    
+-    @MainActor
+-    func testBusyOverlayViewNotShownInitially() throws {
+-        // Busy overlay should not be visible on app launch
+-        let processingText = app.staticTexts["Processing..."]
+-        XCTAssertFalse(processingText.exists, "Processing overlay should not be visible initially")
+-    }
+-    
+-    // MARK: - Integration Tests
+-    
+-    @MainActor
+-    func testAllComponentsRenderedTogether() throws {
+-        // Verify that all major components are rendered together
+-        XCTAssertTrue(app.buttons["Source"].exists, "FolderPickerView should be rendered")
+-        XCTAssertTrue(app.staticTexts["Total Files: 0"].exists, "FolderStatsView should be rendered")
+-        XCTAssertTrue(app.buttons["Process"].exists, "ProcessControlView should be rendered")
+-        XCTAssertTrue(app.progressIndicators.count > 0, "ProgressBarView should be rendered")
+-        XCTAssertTrue(app.staticTexts["No results yet - click Process to analyze files"].exists, 
+-                     "ResultsChartsView should be rendered")
+-    }
+-    
+-    @MainActor
+-    func testComponentsLayoutOrder() throws {
+-        // Test that components appear in the correct order from top to bottom
+-        let sourceButton = app.buttons["Source"]
+-        let totalFilesLabel = app.staticTexts["Total Files: 0"]
+-        let processButton = app.buttons["Process"]
+-        
+-        XCTAssertTrue(sourceButton.exists)
+-        XCTAssertTrue(totalFilesLabel.exists)
+-        XCTAssertTrue(processButton.exists)
+-        
+-        // Source should be above Total Files
+-        XCTAssertLessThan(sourceButton.frame.minY, totalFilesLabel.frame.minY, 
+-                         "Source button should be above Total Files label")
+-        
+-        // Total Files should be above Process button
+-        XCTAssertLessThan(totalFilesLabel.frame.minY, processButton.frame.minY, 
+-                         "Total Files should be above Process button")
+-    }
+-}
+diff --git a/ChecksumTestsUITests/WorkflowUITests.swift b/ChecksumTestsUITests/WorkflowUITests.swift
+deleted file mode 100644
+index ab38ff0..0000000
+--- a/ChecksumTestsUITests/WorkflowUITests.swift
++++ /dev/null
+@@ -1,152 +0,0 @@
+-//
+-//  WorkflowUITests.swift
+-//  ChecksumTestsUITests
+-//
+-//  Created by Harold Tomlinson on 2025-10-08.
+-//
+-
+-import XCTest
+-
+-final class WorkflowUITests: XCTestCase {
+-    
+-    var app: XCUIApplication!
+-    
+-    override func setUpWithError() throws {
+-        continueAfterFailure = false
+-        app = XCUIApplication()
+-        app.launch()
+-    }
+-    
+-    override func tearDownWithError() throws {
+-        app = nil
+-    }
+-    
+-    // MARK: - Initial State Workflow
+-    
+-    @MainActor
+-    func testInitialStateWorkflow() throws {
+-        // Verify the complete initial state
+-        XCTAssertTrue(app.buttons["Source"].isEnabled, "Source button should be enabled initially")
+-        XCTAssertFalse(app.buttons["Process"].isEnabled, "Process button should be disabled initially")
+-        XCTAssertTrue(app.staticTexts["Select a source directory"].exists, "Initial status should be shown")
+-        XCTAssertFalse(app.staticTexts["Processing..."].exists, "Should not be processing initially")
+-    }
+-    
+-    // MARK: - Button State Tests
+-    
+-    @MainActor
+-    func testSourceButtonInteraction() throws {
+-        let sourceButton = app.buttons["Source"]
+-        XCTAssertTrue(sourceButton.exists, "Source button should exist")
+-        XCTAssertTrue(sourceButton.isHittable, "Source button should be clickable")
+-        
+-        // Note: We can't fully test the file picker dialog in UI tests
+-        // as it's a system dialog, but we can verify the button is functional
+-    }
+-    
+-    @MainActor
+-    func testProcessButtonStateBeforeSourceSelection() throws {
+-        let processButton = app.buttons["Process"]
+-        XCTAssertFalse(processButton.isEnabled, 
+-                      "Process button should remain disabled until a source is selected")
+-    }
+-    
+-    // MARK: - UI Consistency Tests
+-    
+-    @MainActor
+-    func testUIElementsConsistency() throws {
+-        // Verify all expected UI elements are present and consistent
+-        let sourceButton = app.buttons["Source"]
+-        let processButton = app.buttons["Process"]
+-        let statusText = app.staticTexts["Select a source directory"]
+-        let totalFilesText = app.staticTexts["Total Files: 0"]
+-        
+-        XCTAssertTrue(sourceButton.exists)
+-        XCTAssertTrue(processButton.exists)
+-        XCTAssertTrue(statusText.exists)
+-        XCTAssertTrue(totalFilesText.exists)
+-    }
+-    
+-    // MARK: - Empty State Tests
+-    
+-    @MainActor
+-    func testEmptyStateMessage() throws {
+-        // Verify empty state message for results
+-        let emptyMessage = app.staticTexts["No results yet - click Process to analyze files"]
+-        XCTAssertTrue(emptyMessage.exists, "Empty state message should be displayed")
+-    }
+-    
+-    @MainActor
+-    func testEmptyStateNoFileTypeBreakdown() throws {
+-        // When no files are loaded, file type information should not be shown
+-        XCTAssertFalse(app.staticTexts["Photo:"].exists)
+-        XCTAssertFalse(app.staticTexts["Audio:"].exists)
+-        XCTAssertFalse(app.staticTexts["Video:"].exists)
+-        XCTAssertFalse(app.staticTexts["Other:"].exists)
+-    }
+-    
+-    // MARK: - Status Text Tests
+-    
+-    @MainActor
+-    func testStatusTextVisibility() throws {
+-        // Status text should always be visible
+-        let statusTextExists = app.staticTexts.allElementsBoundByIndex.contains { element in
+-            element.label == "Select a source directory"
+-        }
+-        XCTAssertTrue(statusTextExists, "Status text should be visible at all times")
+-    }
+-    
+-    // MARK: - Layout Tests
+-    
+-    @MainActor
+-    func testMainLayoutStructure() throws {
+-        // Verify the main layout structure is correct
+-        let sourceButton = app.buttons["Source"]
+-        let processButton = app.buttons["Process"]
+-        let progressIndicators = app.progressIndicators
+-        
+-        XCTAssertTrue(sourceButton.exists, "Source section should exist")
+-        XCTAssertTrue(processButton.exists, "Process section should exist")
+-        XCTAssertGreaterThan(progressIndicators.count, 0, "Progress section should exist")
+-    }
+-    
+-    @MainActor
+-    func testVerticalLayoutOrder() throws {
+-        // Verify components are laid out vertically in the correct order
+-        let sourceButton = app.buttons["Source"]
+-        let processButton = app.buttons["Process"]
+-        
+-        XCTAssertLessThan(sourceButton.frame.midY, processButton.frame.midY,
+-                         "Source button should appear before Process button")
+-    }
+-    
+-    // MARK: - Threshold Display Tests
+-    
+-    @MainActor
+-    func testThresholdValuesDisplayed() throws {
+-        // Verify that threshold values are displayed somewhere in the UI
+-        let allStaticTexts = app.staticTexts.allElementsBoundByIndex
+-        let hasThresholdValues = allStaticTexts.contains { element in
+-            let label = element.label
+-            return label.contains("KB") || label.contains("MB") || label.contains("GB")
+-        }
+-        
+-        XCTAssertTrue(hasThresholdValues, "Threshold values should be displayed in the UI")
+-    }
+-    
+-    // MARK: - Progress Indicator Tests
+-    
+-    @MainActor
+-    func testProgressIndicatorExists() throws {
+-        // Verify progress indicator is present
+-        XCTAssertGreaterThan(app.progressIndicators.count, 0, 
+-                           "Progress indicator should be present in the UI")
+-    }
+-    
+-    @MainActor
+-    func testProgressIndicatorVisible() throws {
+-        // Progress indicator should be visible (though at 0% initially)
+-        let progressIndicator = app.progressIndicators.firstMatch
+-        XCTAssertTrue(progressIndicator.exists, "Progress indicator should exist")
+-    }
+-}

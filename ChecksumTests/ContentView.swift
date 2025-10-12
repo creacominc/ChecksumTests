@@ -51,8 +51,8 @@ struct ContentView: View
                              maxLevel: $maxLevel )
 
 
-            // results
-            Text("TBD results")
+            // file extensions handled
+            FileExtensionsHandledView( fileSetBySize: $fileSetBySize )
         }
         .padding( )
         Spacer()

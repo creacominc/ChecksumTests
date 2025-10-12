@@ -146,11 +146,17 @@ class FileSetBySize
                                            maxLevel: @escaping (Int) -> Void = { _ in },
                                            shouldCancel: @escaping () -> Bool = { false }) -> [Int:Int]
     {
+        // map to be returned.
         var bytesNeeded: [Int:Int] = [:]
 
+        // Mark files as unique where there is only one file for that size
+        for (_, files) in fileSetsBySize where files.count == 1 {
+            files.first!.isUnique = true
+        }
+
         // Get all sizes that need processing (sizes with multiple files)
-        let sizesToProcess = fileSetsBySize.filter { $0.value.count > 1 }.map { $0.key }
-        let totalSizes = sizesToProcess.count
+        let sizesToProcess: [Int] = fileSetsBySize.filter { $0.value.count > 1 }.map { $0.key }
+        let totalSizes: Int = sizesToProcess.count
         
         // Update max level on main thread
         DispatchQueue.main.async {
@@ -160,7 +166,7 @@ class FileSetBySize
         
         var processedCount = 0
 
-        // for each size
+        // for each size of file
         for size in sizesToProcess
         {
             // Check for cancellation
@@ -168,7 +174,7 @@ class FileSetBySize
                 print("Processing cancelled at size \(size)")
                 break
             }
-            
+
             // if the set has more than one file...
             let fileCount = fileSetsBySize[size]!.count
             print("Processing size \(size) with \(fileCount) files")
@@ -198,14 +204,21 @@ class FileSetBySize
                     bytesNeeded[size] = checksumSize
                     // break out of for loop
                     break
-                } else {
-                    print( "Size \(size): At \(checksumSize) bytes, only \(uniqueChecksums.count) unique checksums out of \(fileSetsBySize[size]!.count) files" )
                 }
             } // for checksumSizes
             
             // Check if we never found uniqueness
-            if bytesNeeded[size] == nil {
+            if bytesNeeded[size] == nil
+            {
                 print( "Size \(size): WARNING - Could not distinguish all files even at maximum checksum size" )
+                // print the checksums for and the paths to the duplicate files
+                for file in fileSetsBySize[size]!
+                {
+                    file.isUnique = false
+                    print(
+                        "\t\(file.computeChecksum(size: 100).prefix(100))  :  \(file.fileUrl.path())"
+                    )
+                }
             }
             
             // Update progress after processing each size
@@ -216,5 +229,22 @@ class FileSetBySize
         } // for each size
         return bytesNeeded
     }
-    
+
+
+    public func extensions() -> [String]
+    {
+        // return a sorted list of extensions from all files in all sizes
+        var allExtensions: Set<String> = []
+        for (_, fileSet) in self.fileSetsBySize
+        {
+            for file in fileSet
+            {
+                if let fileExtension = URL(fileURLWithPath: file.fileUrl.path).pathExtension.split(separator: ".").last
+                {
+                    allExtensions.insert(String(fileExtension))
+                }
+            }
+        }
+        return allExtensions.sorted(by: <)
+    }
 }
