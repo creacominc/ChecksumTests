@@ -143,6 +143,10 @@ struct ChecksumSizeDistribution: View
         .onChange(of: sourceURL) { oldValue, newValue in
             // Clear results when a new folder is selected
             if oldValue != newValue {
+                // Cancel any processing in progress
+                if isProcessing {
+                    shouldCancel = true
+                }
                 bytesNeededBySize = [:]
                 currentLevel = 0
                 maxLevel = 0

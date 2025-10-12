@@ -61,25 +61,19 @@ struct FolderStatsView: View
         .onChange(of: sourceURL)
         { oldValue, newValue in
             updateDistribution = false
-            // This closure is called whenever sourceURL changes
-            if let url = newValue
-            {
-                analyzer.analyzeFolderStats(url: url, into: fileSetBySize) {
-                    // This completion handler is called when analysis is done
-                    updateDistribution = true
+            
+            // If URL changed, ensure we start fresh
+            if oldValue != newValue {
+                // Reset analyzer to clear any in-progress state
+                // This allows a new analysis to start immediately
+                if analyzer.isAnalyzing {
+                    print("Resetting analyzer due to URL change from \(oldValue?.path ?? "nil") to \(newValue?.path ?? "nil")")
                 }
-            }
-            else
-            {
-                // Reset stats when URL is cleared
                 analyzer.reset()
             }
-        }
-        .onAppear
-        {
-            updateDistribution = false
-            // Also analyze on first appearance if URL is already set
-            if let url = sourceURL
+            
+            // This closure is called whenever sourceURL changes
+            if let url = newValue
             {
                 analyzer.analyzeFolderStats(url: url, into: fileSetBySize) {
                     // This completion handler is called when analysis is done

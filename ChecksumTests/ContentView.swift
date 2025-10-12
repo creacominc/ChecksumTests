@@ -53,6 +53,10 @@ struct ContentView: View
 
             // file extensions handled
             FileExtensionsHandledView( fileSetBySize: $fileSetBySize )
+
+            // table of duplicate files
+            DuplicateFilesTableView( fileSetBySize: $fileSetBySize )
+
         }
         .padding( )
         Spacer()

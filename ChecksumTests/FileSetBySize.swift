@@ -48,7 +48,9 @@ class FileSetBySize
     
     /// Replaces all contents with another FileSetBySize - O(1) operation
     func replaceAll(with other: FileSetBySize) {
+        print("replaceAll called: replacing \(self.totalFileCount) files with \(other.totalFileCount) files")
         fileSetsBySize = other.fileSetsBySize
+        print("After replaceAll: now have \(self.totalFileCount) files")
     }
     
     // MARK: - Efficient Read Access (no array copying)
@@ -167,18 +169,27 @@ class FileSetBySize
         var processedCount = 0
 
         // for each size of file
-        for size in sizesToProcess
+        for fileSize in sizesToProcess
         {
             // Check for cancellation
             if shouldCancel() {
-                print("Processing cancelled at size \(size)")
+                print("Processing cancelled at size \(fileSize)")
                 break
             }
 
             // if the set has more than one file...
-            let fileCount = fileSetsBySize[size]!.count
-            print("Processing size \(size) with \(fileCount) files")
-            let checksumSizes: [Int] = getChecksumSizes(size: size)
+            let filesAtSize = fileSetsBySize[fileSize]!
+            let fileCount = filesAtSize.count
+            let uniquePathCount = Set(filesAtSize.map { $0.fileUrl.path() }).count
+            print("Processing size \(fileSize) with \(fileCount) files (\(uniquePathCount) unique paths)")
+            
+            // Warn if there are duplicate file objects
+            if fileCount != uniquePathCount {
+                print("  WARNING: \(fileCount - uniquePathCount) duplicate file objects detected!")
+            }
+            
+            let checksumSizes: [Int] = getChecksumSizes(size: fileSize)
+            var checksumSizeHandled: Int = 0
             // for every checksum size
             for checksumSize in checksumSizes
             {
@@ -192,33 +203,44 @@ class FileSetBySize
                 
                 // print( "checksumSize == \(checksumSize)" )
                 // iterate until the files for this size == the size of the set of unique checksums
-                for file in fileSetsBySize[size]!
+                for file in fileSetsBySize[fileSize]!
                 {
                     let checksumData = file.computeChecksum(size: checksumSize).data(using: .utf8)!
                     uniqueChecksums.insert(checksumData)
                 }
+                checksumSizeHandled = checksumSize
                 // stop if the number of uniqueChecksums == the number of files
-                if uniqueChecksums.count == fileSetsBySize[size]!.count
+                if uniqueChecksums.count == fileSetsBySize[fileSize]!.count
                 {
-                    print( "Size \(size): Found uniqueness at \(checksumSize) bytes for \(fileSetsBySize[size]!.count) files" )
-                    bytesNeeded[size] = checksumSize
+                    print( "Size \(fileSize): Found uniqueness at \(checksumSize) bytes for \(fileSetsBySize[fileSize]!.count) files" )
+                    bytesNeeded[fileSize] = checksumSize
                     // break out of for loop
                     break
                 }
             } // for checksumSizes
             
             // Check if we never found uniqueness
-            if bytesNeeded[size] == nil
+            if bytesNeeded[fileSize] == nil
             {
-                print( "Size \(size): WARNING - Could not distinguish all files even at maximum checksum size" )
-                // print the checksums for and the paths to the duplicate files
-                for file in fileSetsBySize[size]!
-                {
-                    file.isUnique = false
-                    print(
-                        "\t\(file.computeChecksum(size: 100).prefix(100))  :  \(file.fileUrl.path())"
-                    )
+                let filesAtSize = fileSetsBySize[fileSize]!
+                let uniquePaths = Set(filesAtSize.map { $0.fileUrl.path() })
+                
+                print( "Size \(fileSize): WARNING - Could not distinguish all files even at maximum checksum size: \(checksumSizeHandled)" )
+                print( "  Total file objects: \(filesAtSize.count), Unique paths: \(uniquePaths.count)" )
+                
+                // Check for duplicate file objects (same path appearing multiple times)
+                if filesAtSize.count != uniquePaths.count {
+                    print( "  ERROR: Found \(filesAtSize.count - uniquePaths.count) duplicate file objects in the array!" )
                 }
+                
+                 // print the checksums for and the paths to the duplicate files
+                 for file in filesAtSize
+                 {
+                     file.isUnique = false
+                     print(
+                        "\tSize: \(fileSize), \t\(file.checksums.max(by: <)!)  :  \(file.fileUrl.path())"
+                     )
+                 }
             }
             
             // Update progress after processing each size
