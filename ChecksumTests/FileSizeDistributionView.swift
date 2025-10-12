@@ -182,7 +182,7 @@ struct FileSizeDistributionView: View
         var bins: [String: Int] = [:]
         
         for size in sizes {
-            let logSize = log10(Double(size))
+            let logSize = log10(Double( max(size,128) ))
             let binIndex = Int((logSize - logMin) / binSize)
             let actualBinIndex = min(binIndex, numBins - 1) // Ensure we don't exceed bounds
             

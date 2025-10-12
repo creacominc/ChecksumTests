@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ChecksumSizeDistribution: View
 {
+    // [in] sourceURL - to detect when a new folder is selected
+    var sourceURL: URL?
     // [in] processEnabled - true when there is data to process
     @Binding var processEnabled: Bool
     // [in] fileSetBySize - files grouped by size
@@ -40,6 +42,8 @@ struct ChecksumSizeDistribution: View
                         // Start processing
                         shouldCancel = false
                         isProcessing = true
+                        // Clear previous results when starting new processing
+                        bytesNeededBySize = [:]
                         
                         // Process on background thread to keep UI responsive
                         DispatchQueue.global(qos: .userInitiated).async {
@@ -61,6 +65,12 @@ struct ChecksumSizeDistribution: View
                                 if !self.shouldCancel {
                                     // Only update results if not cancelled
                                     self.bytesNeededBySize = results
+                                    print("Processing completed. Results count: \(results.count)")
+                                    if results.isEmpty {
+                                        print("No results found - all files may be unique or identical")
+                                    }
+                                } else {
+                                    print("Processing was cancelled")
                                 }
                                 self.isProcessing = false
                                 self.shouldCancel = false
@@ -70,6 +80,14 @@ struct ChecksumSizeDistribution: View
                 }
                 .disabled( !processEnabled && !isProcessing )
                 Spacer()
+            }
+            
+            // Status message
+            if !isProcessing && bytesNeededBySize.isEmpty && currentLevel > 0 {
+                Text("Processing completed. No duplicate files found or all duplicates are identical.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 5)
             }
             
             // Display table if we have results
@@ -122,17 +140,27 @@ struct ChecksumSizeDistribution: View
                 }
             }
         }
+        .onChange(of: sourceURL) { oldValue, newValue in
+            // Clear results when a new folder is selected
+            if oldValue != newValue {
+                bytesNeededBySize = [:]
+                currentLevel = 0
+                maxLevel = 0
+            }
+        }
     }
 }
 
 #Preview
 {
+    @Previewable @State var sourceURL: URL? = nil
     @Previewable @State var processEnabled: Bool = true
     @Previewable @State var fileSetBySize: FileSetBySize = FileSetBySize()
     @Previewable @State var currentLevel: Int = 0
     @Previewable @State var maxLevel: Int = 100
 
-    ChecksumSizeDistribution( processEnabled: $processEnabled
+    ChecksumSizeDistribution( sourceURL: sourceURL
+                              , processEnabled: $processEnabled
                               , fileSetBySize: $fileSetBySize
                               , currentLevel: $currentLevel
                               , maxLevel: $maxLevel )

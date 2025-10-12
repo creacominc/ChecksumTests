@@ -40,7 +40,8 @@ struct ContentView: View
             )
 
             // ChecksumSizeDistribution
-            ChecksumSizeDistribution( processEnabled: $processEnabled
+            ChecksumSizeDistribution( sourceURL: sourceURL
+                                      , processEnabled: $processEnabled
                                       , fileSetBySize: $fileSetBySize
                                       , currentLevel: $currentLevel
                                       , maxLevel: $maxLevel )

@@ -170,16 +170,19 @@ class FileSetBySize
             }
             
             // if the set has more than one file...
-            // create a set for the checksums
-            var uniqueChecksums: Set<Data> = []
+            let fileCount = fileSetsBySize[size]!.count
+            print("Processing size \(size) with \(fileCount) files")
             let checksumSizes: [Int] = getChecksumSizes(size: size)
-            // for every size
+            // for every checksum size
             for checksumSize in checksumSizes
             {
                 // Check for cancellation
                 if shouldCancel() {
                     break
                 }
+                
+                // Create a fresh set for each checksum size
+                var uniqueChecksums: Set<Data> = []
                 
                 // print( "checksumSize == \(checksumSize)" )
                 // iterate until the files for this size == the size of the set of unique checksums
@@ -191,12 +194,19 @@ class FileSetBySize
                 // stop if the number of uniqueChecksums == the number of files
                 if uniqueChecksums.count == fileSetsBySize[size]!.count
                 {
-                    print( "uniqueChecksums.count == fileSetsBySize[size]!.count == \(fileSetsBySize[size]!.count)" )
+                    print( "Size \(size): Found uniqueness at \(checksumSize) bytes for \(fileSetsBySize[size]!.count) files" )
                     bytesNeeded[size] = checksumSize
                     // break out of for loop
                     break
+                } else {
+                    print( "Size \(size): At \(checksumSize) bytes, only \(uniqueChecksums.count) unique checksums out of \(fileSetsBySize[size]!.count) files" )
                 }
             } // for checksumSizes
+            
+            // Check if we never found uniqueness
+            if bytesNeeded[size] == nil {
+                print( "Size \(size): WARNING - Could not distinguish all files even at maximum checksum size" )
+            }
             
             // Update progress after processing each size
             processedCount += 1
