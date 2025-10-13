@@ -147,10 +147,12 @@ struct FileSizeDistributionView: View
     private func createSizeBins(from fileSetBySize: FileSetBySize) -> [(size: String, count: Int, sortKey: Int)]
     {
         let sizes = fileSetBySize.sortedSizes
-        guard let minSize = sizes.min(), let maxSize = sizes.max() else {
+        guard var minSize: Int = sizes.min(), var maxSize: Int = sizes.max() else {
             return []
         }
         
+        minSize = max( 128, minSize )
+        maxSize = max( 128, maxSize )
         // Use logarithmic binning for better distribution across orders of magnitude
         let logMin = log10(Double(minSize))
         let logMax = log10(Double(maxSize))
